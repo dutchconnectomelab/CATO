@@ -12,6 +12,7 @@ Full documentation is provided on the CATO website [http://www.dutchconnectomela
 ## Reference
 The toolbox is presented in:
 > Structural and functional connectivity reconstruction with CATO - Connectivity Analysis TOolbox
+>
 > de Lange SC, van den Heuvel MP, 2020
 
 ## Installation
