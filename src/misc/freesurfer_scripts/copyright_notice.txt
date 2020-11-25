@@ -1,0 +1,6 @@
+The scripts in this directory are copied or adapted from version 5.1.0 of the
+FreeSurfer software suite and are subject to the FreeSurfer Software License
+Agreement:
+https://surfer.nmr.mgh.harvard.edu/fswiki/FreeSurferSoftwareLicense
+
+

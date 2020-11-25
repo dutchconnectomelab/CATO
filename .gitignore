@@ -9,6 +9,5 @@ Thumbs.db
 examples/
 test/
 run_testcases.m
-bin/macos/3.0-beta*
 # include git-files
 !.git*

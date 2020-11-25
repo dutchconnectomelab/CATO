@@ -1,0 +1,74 @@
+{
+	"general":{
+		"fslRootDir":"/Applications/fsl/5.0.10",
+		"freesurferRootDir": "/Applications/freesurfer/6.0.0", 		
+		"parameterPropertiesFile": "functionalParameterProperties.xlsx",
+		"templates": ["aparc", "economo", "BB50human", "lausanne120", "lausanne250"],
+		"reconstructionSteps":{ 
+			"functional_preprocessing": true,
+			"parcellation": true,
+			"collect_region_properties": true,
+			"compute_motion_metrics": true,
+			"reconstruction_functional_network": true
+		},
+		"freesurferDir": "T1/SUBJECT_FS",
+		"templatesDir": "TOOLBOXDIR/templates",
+		"ROIsFile": "TEMPLATESDIR/TEMPLATE/ROIs_TEMPLATE.txt",
+		"outputDir": "fMRI_processed",
+		"logFile": "OUTPUTDIR/functional_pipeline.log",
+		"statusFile": "OUTPUTDIR/functional_pipeline.STATUS",		
+		"computedConfigFile": "OUTPUTDIR/functional_configuration.json",
+		"TEMPDIR": "",
+		"fmriProcessedTMPFile": "TEMPDIR/SUBJECT_fmri.nii"
+	},
+	"functional_preprocessing":
+	{
+		"fmriFile": "fMRI/SUBJECT_fmri.nii.gz",
+		"fmriProcessedFile": "OUTPUTDIR/SUBJECT_fmri.nii.gz",
+		"motionParametersFile": "OUTPUTDIR/SUBJECT_motion_parameters.par",
+		"fmriReferenceFile": "OUTPUTDIR/SUBJECT_ref.nii.gz",
+		"registrationMatrixFile": "OUTPUTDIR/SUBJECT_ref_to_freesurfer.dat",
+		"segmentationFile": "OUTPUTDIR/SUBJECT_aseg_ref.nii.gz",
+		"sliceTimingCorrection":true,
+		"sliceTimerOptions": "",
+		"preprocessingScript": "TOOLBOXDIR/functional_preprocessing/preprocess_default.sh"
+	},
+	"parcellation":{
+		"templateScript": "TEMPLATESDIR/TEMPLATE/parcellate_TEMPLATE.sh",
+		"parcellationFile": "OUTPUTDIR/SUBJECT_TEMPLATE+aseg_ref.nii.gz",
+		"forceFreesurferOverwrite": false
+	},
+	"collect_region_properties":{
+		"statsLhFile": "FREESURFERDIR/stats/lh.TEMPLATE.stats",
+		"statsRhFile": "FREESURFERDIR/stats/rh.TEMPLATE.stats",
+		"statsSubFile": "FREESURFERDIR/stats/aseg.stats",
+		"lutFile": "TEMPLATESDIR/TEMPLATE/TEMPLATE.annot.ctab",
+		"regionPropertiesFile": "OUTPUTDIR/SUBJECT_region_properties_TEMPLATE.mat"
+	},
+	"compute_motion_metrics":{
+		"motionMetricsFile": "OUTPUTDIR/SUBJECT_motion_metrics.mat"
+	},
+	"reconstruction_functional_network":{
+		"methodDescription": "scrubbed_0.01-0.1",
+		"connectivityMatrixFile": "OUTPUTDIR/SUBJECT_connectivity_METHOD_TEMPLATE.mat",
+		"timeSeriesFile": "OUTPUTDIR/SUBJECT_time_series_METHOD_TEMPLATE.mat",
+		"minRepetitionTime": 100,
+		"regression":{
+			"regressionMask": [2, 41, 24],
+			"globalMeanRegression": false
+		},
+		"bandpass_filter":{
+			"filter": true,
+			"frequencies": [0.01, 0.1]
+		},
+		"scrubbing":{
+			"scrubbing": true,
+			"maxFD": 0.25, 
+			"maxDVARS": 1.5, 
+			"minViolations": 2,
+			"backwardNeighbors": 1,
+			"forwardNeighbors": 0
+		},
+		"saveTimeSeries": true
+	}
+}
