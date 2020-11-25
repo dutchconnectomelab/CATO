@@ -1,4 +1,4 @@
-<img src="http://www.dutchconnectomelab.nl/CATO/assets/img/CATO_logo.svg" alt="Logo CATO" width="200"/>
+<a href="http://www.dutchconnectomelab.nl/CATO"><img src="http://www.dutchconnectomelab.nl/CATO/assets/img/CATO_logo.svg" alt="Logo CATO" width="200"/></a>
 
 # CATO
 Structural and functional brain connectivity reconstruction toolbox.
