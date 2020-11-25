@@ -54,7 +54,7 @@
 		"timeSeriesFile": "OUTPUTDIR/SUBJECT_time_series_METHOD_TEMPLATE.mat",
 		"minRepetitionTime": 100,
 		"regression":{
-			"regressionMask": [2, 41, 24],
+			"regressionMask": [24,2,41,251,252,253,254,255],
 			"globalMeanRegression": false
 		},
 		"bandpass_filter":{
