@@ -1,0 +1,14 @@
+# ignore hidden files
+.*
+ehthumbs.db
+Thumbs.db
+# ignore temporary MATLAB and excel files
+*.m~
+~$*.xls*
+# Other files
+examples/
+test/
+run_testcases.m
+bin/macos/3.0-beta*
+# include git-files
+!.git*
