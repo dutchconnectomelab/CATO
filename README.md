@@ -1,8 +1,9 @@
+<img src="http://www.dutchconnectomelab.nl/CATO/assets/img/CATO_logo.svg" alt="Logo CATO" width="200"/>
+
 # CATO
 Structural and functional connectivity reconstruction toolbox
 
 ## Hi!
---------
 CATO is a modular software package for the reconstruction of structural and functional brain connectivity based on diffusion weighted imaging data and resting-state functional MRI data. The modular design of the toolbox enables researchers to run end-to-end reconstructions from raw MRI data to connectomes, customize their analysis and/or utilize other software packages during the data processing. To facilitate integrative analysis of structural and functional connectivity, CATO can reconstruct structural and functional connectivity with respect to the same brain parcellation for common (sub)cortical atlases.
 
 ## Documentation
