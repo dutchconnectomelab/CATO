@@ -1,0 +1,116 @@
+{
+	"general":{
+		"fslRootDir":"/Applications/fsl/5.0.10",
+		"freesurferRootDir": "/Applications/freesurfer/6.0.0", 
+		"parameterPropertiesFile": "structuralParameterProperties.xlsx",		
+		"templates": ["aparc", "economo", "BB50human", "lausanne120", "lausanne250", "lausanne500"],
+		"reconstructionMethods": ["DTI", "CSD", "GQI", "GQI_DTI"],		
+		"reconstructionSteps":{ 
+			"structural_preprocessing": true,
+			"parcellation": true,
+			"collect_region_properties": true,
+			"reconstruction_diffusion": true,
+			"reconstruction_fibers": true,
+			"reconstruction_fiber_properties": true,
+			"reconstruction_network": true
+		},
+		"FAMeasure": {
+			"DTI": "fractional anisotropy",
+			"CSD": "fractional anisotropy",
+			"DTI_CSD": "fractional anisotropy",
+			"GQI": "normalized generalized fractional anisotropy",
+			"GQI_DTI": "normalized generalized fractional anisotropy"},		
+		"freesurferDir": "T1/SUBJECT_FS",
+		"templatesDir": "TOOLBOXDIR/templates",
+		"ROIsFile": "TEMPLATESDIR/TEMPLATE/ROIs_TEMPLATE.txt",
+		"outputDir": "DWI_processed",
+		"logFile": "OUTPUTDIR/structural_pipeline.log",
+		"statusFile": "OUTPUTDIR/structural_pipeline.STATUS",		
+		"computedConfigFile": "OUTPUTDIR/structural_configuration.json",
+		"maxMemoryGB": 2
+	},
+	"structural_preprocessing":{ 
+		"rawBvalsFile": "DTI/SUBJECT.bvals",
+		"rawBvecsFile": "DTI/SUBJECT.bvecs",
+		"dwiFile": "DTI/SUBJECT_DTI.nii.gz",
+		"dwiB0ReversedFile": "",
+		"dwiReversedFile": "",		
+		"preprocessingScript": "TOOLBOXDIR/structural_preprocessing/preprocess_minimal.sh", 	
+		"eddyVersion": "eddy_openmp",
+		"acqpFactor": 0.085,
+		"revPhaseEncDim": 1,			
+		"registrationMatrixFile": "OUTPUTDIR/SUBJECT_b0_to_freesurfer.dat",   
+		"dwiReferenceFile": "OUTPUTDIR/SUBJECT_dwi_b0.nii.gz",   
+		"processedBvalsFile": "OUTPUTDIR/bvals_processed.txt",
+		"processedBvecsFile": "OUTPUTDIR/bvecs_processed.txt",
+		"indexFile": "OUTPUTDIR/index.txt",
+		"acqpFile": "OUTPUTDIR/acqp.txt",    
+		"dwiProcessedFile": "OUTPUTDIR/SUBJECT_dwi.nii.gz",
+		"segmentationFile": "OUTPUTDIR/SUBJECT_aseg_b0.nii.gz"
+	},
+	"parcellation":{
+		"templateScript": "TEMPLATESDIR/TEMPLATE/parcellate_TEMPLATE.sh",
+		"parcellationFile": "OUTPUTDIR/SUBJECT_TEMPLATE+aseg_b0.nii.gz",
+		"forceFreesurferOverwrite": false
+	},
+	"collect_region_properties":{
+		"statsLhFile": "FREESURFERDIR/stats/lh.TEMPLATE.stats",
+		"statsRhFile": "FREESURFERDIR/stats/rh.TEMPLATE.stats",
+		"statsSubFile": "FREESURFERDIR/stats/aseg.stats",
+		"lutFile": "TEMPLATESDIR/TEMPLATE/TEMPLATE.annot.ctab",
+		"regionPropertiesFile": "OUTPUTDIR/SUBJECT_region_properties_TEMPLATE.mat"
+	},
+	"reconstruction_diffusion":{
+		"DTI":{
+			"thresCondNum": [],
+			"thresVarProjScores": []
+		},
+		"CSD":{ 
+			"lambda": 1,
+			"shOrder": 6,
+			"tau": 0.1,
+			"CCRegions": [251, 252, 253, 254, 255],
+			"FAThreshold": 0.7,
+			"outputPeaks": 2,
+			"minPeakRatio": 0.1,
+			"maxPeaks": 8
+		},
+		"GQI":{ 
+			"meanDiffusionDistanceRatio": 1.25,
+			"outputPeaks":4,
+			"minPeakRatio":0.1,
+			"maxPeaks":8
+		},		
+		"diffusionPeaksFile": "OUTPUTDIR/SUBJECT_diffusion_peaks_METHOD.mat",
+		"diffusionMeasuresFile": "OUTPUTDIR/SUBJECT_diffusion_measures.mat",
+		"exportNifti":{
+			"exportNifti": true,
+			"measures": ["fractional anisotropy"],
+			"diffusionMeasuresFileNifti": "OUTPUTDIR/SUBJECT_MEASURE.nii.gz"
+		},
+		"gradientNonlinearities":{
+			"correctNonlinearities": false,
+			"nonlinearitiesFile": ""
+		}
+	},
+	"reconstruction_fibers":{
+		"NumberOfSeedsPerVoxel": 8,
+		"minFA": 0.1,		
+		"maxAngleDeg": 45,
+		"maxFiberRadius": 500,
+		"forbiddenRegions": [1, 6, 7, 8, 40, 45, 46, 47],
+		"stopRegions": [16, 28, 60],
+		"startRegions": [2, 41, 251, 252, 253, 254, 255],
+		"fiberFile": "OUTPUTDIR/SUBJECT_fibers_METHOD.trk"		
+	},
+	"reconstruction_fiber_properties":{
+		"includeGMVoxelsFlag": false,
+		"fiberPropertiesFile": "OUTPUTDIR/SUBJECT_fiber_properties_METHOD_TEMPLATE.mat"
+	},
+	"reconstruction_network":{
+		"minLengthMM": 0,
+		"minFA": 0,
+		"maxAngleDeg": 180,
+		"connectivityMatrixFile": "OUTPUTDIR/SUBJECT_connectivity_METHOD_TEMPLATE.mat"
+	}
+}

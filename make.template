@@ -1,0 +1,175 @@
+#!/bin/bash
+#
+# Run structural pipeline of the CATO toolbox.
+
+# https://google.github.io/styleguide/shellguide.html
+
+# set -x
+
+#######################################
+# Cleanup temporary files
+#######################################
+clean_up() {
+    [ -d "$tmpdir" ] && rm -rf $tmpdir
+    exit 0
+}
+
+#######################################
+# Usage
+#######################################
+usage()
+{
+    echo -n "structural_pipeline for structural connectivity reconstruction.
+
+    Synopsis:
+    structural_pipeline -s SUBJECTDIR -m MCRROOT [OPTION]...
+    structural_pipeline [STEPS]... -s SUBJECTDIR -m MCRROOT [OPTION]...
+
+    Description:
+    CATO structural connectivity reconstruction pipeline. Execution of 
+    specific pipeline steps can be requested on the command line by the STEPS.
+
+    Required arguments:
+    -s, --subjectDir        Directory with a subject's Freesurfer and DWI data
+    -m, --mcrRoot           Installation directory of MATLAB runtime
+
+    Optional arguments:
+    --PARAMNAME=PARAMVALUE  Name-value pairs of configuration parameters.
+                            Example: --general.freesurferDir='T1/SUBJECT_FS'
+    -h, --help              Show this help
+
+    CATO-VERSION            www.dutchconnectomelab.nl/CATO
+"
+}
+
+#######################################
+# Parse input
+#######################################
+parse_input()
+{
+[[ $# -eq 0 ]] && set -- "--help"
+NameValueParams=()
+networkSteps=
+while [ -n "$1" ]; do
+    shopt -s nocasematch
+    case "$1" in
+        -s | --subjectDir)
+        subjectDir=$2
+        shift 2 
+        ;;
+    --subjectDir=*)
+        subjectDir=${1#*=}
+        shift       
+        ;;
+    -m | --mcrRoot)
+        MCRROOT=$2
+        shift 2
+        ;;     
+    --mcrRoot=*)
+        MCRROOT=${1#*=}
+        shift
+        ;;           
+    -? | -h | -help | --help)
+        usage && exit
+        ;;
+    --*=*)
+        inputParam=${1:2};
+        NameValueParams+=(${inputParam%=*} "${inputParam#*=}")
+        shift       
+        ;;
+    --*)
+        paramValue=$2
+        paramName=${1:2};
+        NameValueParams+=($paramName "$paramValue")
+        shift       
+        ;;
+
+    *)
+        networkSteps="${networkSteps} $1"
+        shift
+        ;;
+    esac
+done
+
+# Remove trailing space
+networkSteps=${networkSteps:1}
+
+}
+
+#######################################
+# Extract binary from file
+#######################################
+extractData() {
+    dataLine=$(awk '/^### CATO Binary ###/ {print NR + 1; }' "$0");
+
+    tail -n+$dataLine "$0" > "$target"
+
+    chmod +x "$target" 
+}
+
+
+#######################################
+# Main function
+#######################################
+main() {
+
+    # Clean up temporary directory with the structural_pipeline binary
+    trap clean_up EXIT
+
+    parse_input "$@"
+
+    if [[ ! -d "$subjectDir" ]]
+    then
+        echo "Subject directory argument missing / not a directory."
+        exit 1
+    fi
+
+    if [[ ! -d "$MCRROOT" ]]
+    then
+        echo "MCR root directory argument missing / not a directory."
+        exit 1
+    fi
+
+    # prepare temporary directory
+    tmpdir=$(mktemp -d -t CATO.XXXXXX)
+    target="$tmpdir/structural_pipeline_bin" # Assume target contains no spaces.
+
+    # extract MATLAB binary
+    echo "Prepare CATO..."
+    extractData
+
+    # set up MCR environment
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MCRROOT/runtime/glnxa64
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MCRROOT/bin/glnxa64
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MCRROOT/sys/os/glnxa64
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MCRROOT/sys/opengl/lib/glnxa64
+    export LD_LIBRARY_PATH
+
+    DYLD_LIBRARY_PATH=.:${MCRROOT}/runtime/maci64 ;
+    DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MCRROOT}/bin/maci64 ;
+    DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MCRROOT}/sys/os/maci64;
+    export DYLD_LIBRARY_PATH;
+
+    # Inform MATLAB of location binary
+    NameValueParams+=(general.TOOLBOXDIR "$(dirname "$0")")
+
+    # start automated connectome reconstruction
+    echo "Prepare MATLAB MCR..."
+
+    # Add requested reconstruction steps if specified.
+    if [ ! -z "$networkSteps" ]; then
+        $target "$subjectDir" "${NameValueParams[@]}" reconstructionSteps ${networkSteps// /,}
+    else
+        $target "$subjectDir" "${NameValueParams[@]}" 
+    fi
+
+    # clean up and exit
+    clean_up
+
+}
+
+main "$@"
+
+exit 0
+
+### CATO Binary #################################################
