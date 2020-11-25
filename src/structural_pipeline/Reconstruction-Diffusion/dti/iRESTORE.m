@@ -46,7 +46,7 @@ weightedScansAll = gtab.bvals >= BVAL_THRESHOLD;
 
 % All initial values are called All (later outliers are excluded)
 % Get b-vecs and first scan is (average) b0.
-Ball = getGradientMatrix(gtab);
+Ball = getGradientMatrix(gtab, BVAL_THRESHOLD);
 Sall = [mean(signalIntensities(:, ~weightedScansAll), 2), ...
     signalIntensities(:, weightedScansAll)]';
 
@@ -72,7 +72,7 @@ for iVoxel = 1:nVoxels
     S = Sall(indx_succesful, iVoxel);
     
     if nonlinearitiesFlag
-        Ball = getGradientMatrix(gtab, nonlinearities(iVoxel, :));
+        Ball = getGradientMatrix(gtab, BVAL_THRESHOLD, nonlinearities(iVoxel, :));
     end
     
     B = Ball(indx_succesful, :);
@@ -216,7 +216,7 @@ warning(warningsOld);
 
 end
 
-function B = getGradientMatrix(gtab, nonlinearities)
+function B = getGradientMatrix(gtab, bval_threshold, nonlinearities)
 % GETGRADIENTMATRIX convert gradient table to B matrix.
 %
 % Notes: nonlinearities is a 3x3 matrix.
@@ -224,7 +224,7 @@ function B = getGradientMatrix(gtab, nonlinearities)
 % https://www.humanconnectome.org/storage/app/media/documentation/
 %       data_release/October2012_Release_Appendix4.pdf
 
-if nargin < 2
+if nargin < 3
     nonlinearities = zeros(3);
 else
     nonlinearities = reshape(nonlinearities, [3 3]);
@@ -241,7 +241,7 @@ gtab.bvals = n.^2.*gtab.bvals;
 
 % B is inverse design matrix
 % Design matrix or B matrix assuming Gaussian distributed tensor model
-weightedScans = gtab.bvals > 0;
+weightedScans = gtab.bvals > bval_threshold;
 B = nan(length(gtab.bvals), 7);  % eq [2]
 B(:, 1) = -gtab.bvecs(:, 1) .* gtab.bvecs(:, 1) .* 1 .* gtab.bvals;   % Bxx
 B(:, 2) = -gtab.bvecs(:, 2) .* gtab.bvecs(:, 2) .* 1 .* gtab.bvals;   % Byy
