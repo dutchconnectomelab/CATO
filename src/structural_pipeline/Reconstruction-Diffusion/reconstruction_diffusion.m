@@ -19,6 +19,9 @@ segmentationFile = configParams.structural_preprocessing.segmentationFile;
 processedBvalsFile = configParams.structural_preprocessing.processedBvalsFile;
 processedBvecsFile = configParams.structural_preprocessing.processedBvecsFile;
 
+bValueScalingTol = configParams.general.bValueScalingTol;
+bValueZeroThreshold = configParams.general.bValueZeroThreshold;
+
 diffusionPeaksFile = configParams.reconstruction_diffusion.diffusionPeaksFile;
 diffusionMeasuresFile = configParams.reconstruction_diffusion.diffusionMeasuresFile;
 
@@ -48,38 +51,8 @@ assert(isequal(size(maskBrain), dim(1:3)), ...
     'segmentationFile (%s) and dwiProcessedFile (%s) differ in voxel dimensions', ...
     segmentationFile, dwiProcessedFile);
 
-% Load b-values file.
-gtab.bvals = dlmread(processedBvalsFile);
-validateattributes(gtab.bvals, ...
-    {'numeric'}, {'nonempty', 'vector', 'nonnegative'}, ...
-    mfilename, 'processedBvals');
-gtab.bvals = gtab.bvals(:);
-
-% Load b-vectors file.
-gtab.bvecs = dlmread(processedBvecsFile);
-validateattributes(gtab.bvecs, ...
-    {'numeric'}, {'nonempty', '2d'}, ...
-    mfilename, 'processedBvecs');
-
-assert(any(size(gtab.bvecs) == 3), ...
-    'B-vectors (%ix%i) must be a Nx3 or 3xN matrix.', ...
-    size(gtab.bvecs, 1), size(gtab.bvecs, 2));
-
-if size(gtab.bvecs, 1) == 3
-    gtab.bvecs = gtab.bvecs';
-end
-
-bvecsNorm = sqrt(sum(gtab.bvecs.^2,2));
-if ~all(bvecsNorm == 0 | bvecsNorm > 0.99)
-    warning('One or more b-vectors is not correctly scaled (norm is > 0 and <= 0.99)');
-end
-
-% Check b-values and b-vectors match.
-assert(isequal(length(gtab.bvals), size(gtab.bvecs, 1)), ...
-    'CATO:structural_pipeline:bValsAndbVecsDoNotMatch', ...
-    'Number of processed b-values (%i) and b-vectors (%i) do not match.', ...
-    length(gtab.bvals), size(gtab.bvecs, 1));
-
+% Load gradient table
+gtab = load_gtab(processedBvalsFile, processedBvecsFile, bValueZeroThreshold, bValueScalingTol);
 
 % Import voxel wise gradient correction.
 if nonlinearitiesFlag

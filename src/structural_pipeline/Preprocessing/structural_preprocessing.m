@@ -17,7 +17,8 @@ updateStatus(configParams.general.statusFile, status);
 fprintf('---Preprocessing started----\n');
 
 % Initialize parameters:
-BVAL_THRESHOLD = 10;
+bValueScalingTol = configParams.general.bValueScalingTol;
+bValueZeroThreshold = configParams.general.bValueZeroThreshold;
 
 dwiFile = configParams.structural_preprocessing.dwiFile;
 dwiFileReversed = configParams.structural_preprocessing.dwiReversedFile;
@@ -33,31 +34,12 @@ rawBvecsFile = configParams.structural_preprocessing.rawBvecsFile;
 
 %% Load bvals and bvecs
 
-% Load validate and standardize b-values
-bvals = dlmread(rawBvalsFile);
-validateattributes(bvals, ...
-    {'numeric'}, {'nonempty', 'vector', 'nonnegative'}, ...
-    mfilename, 'rawBvals');
-            
-bvals = bvals(:);
+% Load gradient table
+gtab = load_gtab(processedBvalsFile, processedBvecsFile, ...
+    bValueZeroThreshold, bValueScalingTol);
 
-% Load validate and standardize b-vectors
-bvecs = dlmread(rawBvecsFile);
-validateattributes(bvecs, ...
-    {'numeric'}, {'nonempty', '2d'}, ...
-    mfilename, 'rawBvals');
-
-assert(any(size(bvecs) == 3), ...
-    'bvecs must match number of bVals N and be size Nx3 or 3xN matrix');
-
-if size(bvecs, 1) == 3
-    bvecs = bvecs';
-end
-
-assert(isequal(length(bvals), size(bvecs, 1)), ...
-    'CATO:structural_pipeline:bValsAndbVecsDoNotMatch', ...
-    'Number of b-values (%i) and b-vectors (%i) do not match', ...
-    length(bvals), size(bvecs, 1));
+bvecs = gtab.bvecs;
+bvals = gtab.bvals;
 
 %% Check dimensions of DWI file and bvals and bvecs
 
@@ -98,8 +80,8 @@ end
 % Case 2: All scans reversed (TOPUP)
 if ~isempty(dwiFileReversed) && isempty(dwiB0OnlyReversed)
         
-    nB0dwi = nnz(bvals < BVAL_THRESHOLD);
-    index1 = cumsum(bvals < BVAL_THRESHOLD);
+    nB0dwi = nnz(bvals == 0);
+    index1 = cumsum(bvals == 0);
     
     % Scans for the first b0-scan are associated with first b0-scan.
     index1(index1 == 0) = 1;
@@ -120,11 +102,11 @@ end
 if isempty(dwiFileReversed) && ~isempty(dwiB0OnlyReversed)
 
     % create index file
-    nB0dwi = nnz(bvals < BVAL_THRESHOLD);
+    nB0dwi = nnz(bvals == 0);
     nB0ReversedScans = propdwiB0OnlyReversed.dim(4);
     
     index1 = (1:nB0ReversedScans)';
-    index2 = cumsum(bvals < BVAL_THRESHOLD);
+    index2 = cumsum(bvals == 0);
     index2(index2 == 0) = 1; % Scans for the first b0-scan are associated with first b0-scan.  
     index2 = index2 + max(index1);
 
@@ -164,11 +146,10 @@ end
 %% Run preprocessing scripts
 
 % Make a list of the b0-scans
-b0Scans = find(bvals < BVAL_THRESHOLD)';
+b0Scans = find(bvals == 0)';
 configParams.structural_preprocessing.b0Scans = ...
     strrep(num2str(b0Scans), '  ', ',');
 
-% Setup freesurfer and other stuff?
 preprocessingScript = configParams.structural_preprocessing.preprocessingScript;
 
 % Prepare input arguments
