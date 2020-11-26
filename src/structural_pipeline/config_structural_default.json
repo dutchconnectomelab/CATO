@@ -17,9 +17,11 @@
 		"FAMeasure": {
 			"DTI": "fractional anisotropy",
 			"CSD": "fractional anisotropy",
-			"DTI_CSD": "fractional anisotropy",
+			"CSD_DTI": "fractional anisotropy",
 			"GQI": "normalized generalized fractional anisotropy",
 			"GQI_DTI": "normalized generalized fractional anisotropy"},		
+		"bValueScalingTol": 0.01,
+		"bValueZeroThreshold": 100,
 		"freesurferDir": "T1/SUBJECT_FS",
 		"templatesDir": "TOOLBOXDIR/templates",
 		"ROIsFile": "TEMPLATESDIR/TEMPLATE/ROIs_TEMPLATE.txt",
