@@ -35,7 +35,7 @@ rawBvecsFile = configParams.structural_preprocessing.rawBvecsFile;
 %% Load bvals and bvecs
 
 % Load gradient table
-gtab = load_gtab(processedBvalsFile, processedBvecsFile, ...
+gtab = load_gtab(rawBvalsFile, rawBvecsFile, ...
     bValueZeroThreshold, bValueScalingTol);
 
 bvecs = gtab.bvecs;
@@ -177,7 +177,8 @@ inputArguments = sprintf('--%s="%s" \\\n\t', inputArguments{:});
 %     indexFile
 %     eddyVersion
 
-% Execute preprocesing script 
+% Execute preprocesing script
+fprintf('Execute preprocessing script:\n%s', preprocessingScript);
 cmd = ['"', preprocessingScript, '" ', inputArguments(1:end-3)];
 exitCode = system(cmd);
 
