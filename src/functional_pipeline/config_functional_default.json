@@ -36,13 +36,14 @@
 	"parcellation":{
 		"templateScript": "TEMPLATESDIR/TEMPLATE/parcellate_TEMPLATE.sh",
 		"parcellationFile": "OUTPUTDIR/SUBJECT_TEMPLATE+aseg_ref.nii.gz",
+		"lutFile": "TEMPLATESDIR/TEMPLATE/TEMPLATE.annot.ctab",
+		"matchROIs": true,		
 		"forceFreesurferOverwrite": false
 	},
 	"collect_region_properties":{
 		"statsLhFile": "FREESURFERDIR/stats/lh.TEMPLATE.stats",
 		"statsRhFile": "FREESURFERDIR/stats/rh.TEMPLATE.stats",
 		"statsSubFile": "FREESURFERDIR/stats/aseg.stats",
-		"lutFile": "TEMPLATESDIR/TEMPLATE/TEMPLATE.annot.ctab",
 		"regionPropertiesFile": "OUTPUTDIR/SUBJECT_region_properties_TEMPLATE.mat"
 	},
 	"compute_motion_metrics":{
