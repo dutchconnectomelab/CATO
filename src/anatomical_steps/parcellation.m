@@ -21,6 +21,9 @@ registrationMatrixFile = configParamsList{contains(configParamsList(:, 1), ...
 
 forceFreesurferOverwrite = jsonencode(configParams.parcellation.forceFreesurferOverwrite);
 
+matchROIsFlag = configParams.parcellation.matchROIs;
+
+
 %% Execute parcellation scripts for each template
 for iTemplate = 1:length(templates)
     
@@ -52,6 +55,51 @@ for iTemplate = 1:length(templates)
     % Script creates:
     %     collect_region_properties.statsLhFile
     %     collect_region_properties.statsRhFile
+    %     Surface annotation file freesurferDir/label/?h.TEMPLATE.annot
+    %     Volume annotation file freesurferDir/mri/TEMPLATE+aseg.mgz
+    %     ParcellationFile
+    
+    if matchROIsFlag
+       
+        fprintf('Match ROIs in parcellation file with color lookup table.\n');
+        
+        % Load brain parcellation (volume mapped to dwiReferenceFile)
+        parcellation = load_nifti(parcellationFile);
+        
+        colorLookupTableFile = strrep(configParams.parcellation.lutFile, ...
+            'TEMPLATE', thisTemplate);
+        
+        LUT = readColorLookupTable(colorLookupTableFile);
+        
+        % LEFT
+        % Read original annotation file for orginal LUT
+        annotFile = fullfile(freesurferDir, ...
+            strrep('label/lh.TEMPLATE.annot', 'TEMPLATE', thisTemplate));
+        [~, ~, oldLUT] = read_annotation(annotFile);
+        
+        % Match and reorder 
+        [~, I] = ismember(strcat('ctx-lh-', oldLUT.struct_names), LUT.regionDescriptions);
+        
+        indxLeft = (parcellation.vol >=1000) & (parcellation.vol <2000);
+        valuesLeft = parcellation.vol(indxLeft);
+        parcellation.vol(indxLeft) = LUT.ROIs(I(valuesLeft - 1000 + 1));
+        
+        % RIGHT
+        % Read original annotation file for orginal LUT
+        annotFile = fullfile(freesurferDir, ...
+            strrep('label/rh.TEMPLATE.annot', 'TEMPLATE', thisTemplate));
+        [~, ~, oldLUT] = read_annotation(annotFile);
+        
+        % Match and reorder 
+        [~, I] = ismember(strcat('ctx-rh-', oldLUT.struct_names), LUT.regionDescriptions);
+        
+        indxRight = (parcellation.vol >= 2000) & (parcellation.vol < 3000);
+        valuesRight = parcellation.vol(indxRight);
+        parcellation.vol(indxRight) = LUT.ROIs(I(valuesRight - 2000 + 1));   
+        
+        save_nifti(parcellation, parcellationFile);
+        
+    end
         
 end
 

@@ -29,7 +29,7 @@ function [diffusionPeaks, GFA, QA] = gqi(signalIntensities, gtab, ...
 %
 %   nonlinearities:
 %   2D matrix containing the nonlinearity corrections per voxel.
-%   Rows correspond to voxels and columns to corrections.   
+%   Rows correspond to voxels and columns to corrections.
 %
 %   OUTPUT VARIABLES
 %   diffusionPeaks:
@@ -77,53 +77,40 @@ reconBasis = reconBasis(1:nPointsBasis, :);
 faces = dlmread(fullfile(dataDir, 'faces.txt'));
 faces = faces - (faces > nPointsBasis)*nPointsBasis;
 
-nWeightedScans = nnz(gtab.bvals > 0);
 nVoxels = size(signalIntensities, 1);
-nScans = size(gtab.bvals, 1);
 
 if nonlinearitiesFlag
-    % Correct expanded bvecs and bvalues (one set for each voxel).
-    % TODO: vectorize for-loop for speed improvements.
-    bvals = zeros(nScans, nVoxels);
-    bvecs = zeros(nScans, 3, nVoxels);
-    for iV = 1:nVoxels
-        I = eye(3);
-        v = gtab.bvecs*(I+reshape(nonlinearities(iV, :), [3 3]));
-        vNorm = sqrt(sum(v.^2, 2));
         
-        bvecs(:, :, iV) = v ./ vNorm;
-        bvecs(vNorm == 0, :, iV) = 0;
-        bvals(:, iV) = vNorm.^2.*gtab.bvals;
-    end
-    gtab.bvecs = reshape(permute(bvecs, [1 3 2]), [], 3);
-    gtab.bvals = reshape(bvals, [], 1);
-end
-
-
-lVal = sqrt(gtab.bvals*0.01506);
-bVec = gtab.bvecs .* repmat(lVal, 1, 3);
-basisFunctions = meanDiffusionDistanceRatio .* bVec * reconBasis';
-basisFunctions = sin(basisFunctions) ./ basisFunctions;
-basisFunctions(isinf(basisFunctions) | isnan(basisFunctions)) = 1;
-
-if nonlinearitiesFlag
-    % reshape X to 3D tensor (scans X basis * voxels).
-    basisFunctions = reshape(basisFunctions, nScans, nVoxels, []);
-    basisFunctions = permute(basisFunctions, [1 3 2]);
+    G = sqrt(gtab.bvals) .* gtab.bvecs;
     odf = zeros(nVoxels, nPointsBasis);
-    for iV = 1:nVoxels
-        odf(iV, :) = signalIntensities(iV, :) * basisFunctions(:, :, iV);
+
+    for iV = 1:nVoxels    
+        bVec = sqrt(0.01506) .* G * (eye(3) + reshape(nonlinearities(iV, :), [3 3]));
+        basisFunctions = meanDiffusionDistanceRatio .* bVec * reconBasis';
+        basisFunctions = sin(basisFunctions) ./ basisFunctions;
+        basisFunctions(isinf(basisFunctions) | isnan(basisFunctions)) = 1;
+        
+        odf(iV, :) = signalIntensities(iV, :) * basisFunctions;
     end
+    
 else
-    odf = signalIntensities*basisFunctions;
+    
+    bVec = sqrt(gtab.bvals*0.01506) .* gtab.bvecs;
+    basisFunctions = meanDiffusionDistanceRatio .* bVec * reconBasis';
+    basisFunctions = sin(basisFunctions) ./ basisFunctions;
+    basisFunctions(isinf(basisFunctions) | isnan(basisFunctions)) = 1;
+    
+    odf = signalIntensities * basisFunctions;
+    
 end
 
 GFA = sqrt((nPointsBasis * sum((odf - mean(odf, 2)).^2, 2)) ./ ...
-        ((nPointsBasis-1) * sum(odf.^2, 2)));
-    
+    ((nPointsBasis-1) * sum(odf.^2, 2)));
+
 peakIndices = zeros(size(signalIntensities, 1), outputPeaks, 'uint16');
 QA = zeros(size(signalIntensities, 1), outputPeaks);
-for i = 1:size(signalIntensities, 1)
+
+for i = 1:nVoxels
     
     thisOdf = odf(i, :);
     odfPeaks = thisOdf;
