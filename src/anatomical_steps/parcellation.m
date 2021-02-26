@@ -21,8 +21,7 @@ registrationMatrixFile = configParamsList{contains(configParamsList(:, 1), ...
 
 forceFreesurferOverwrite = jsonencode(configParams.parcellation.forceFreesurferOverwrite);
 
-colorLookupTableFile = configParams.parcellation.colorLookupTableFile;
-matchROIsFlag = configParams.parcellation.matchROIsFlag;
+matchROIsFlag = configParams.parcellation.matchROIs;
 
 
 %% Execute parcellation scripts for each template
@@ -62,8 +61,13 @@ for iTemplate = 1:length(templates)
     
     if matchROIsFlag
        
+        fprintf('Match ROIs in parcellation file with color lookup table.\n');
+        
         % Load brain parcellation (volume mapped to dwiReferenceFile)
         parcellation = load_nifti(parcellationFile);
+        
+        colorLookupTableFile = strrep(configParams.parcellation.lutFile, ...
+            'TEMPLATE', thisTemplate);
         
         LUT = readColorLookupTable(colorLookupTableFile);
         
@@ -74,11 +78,11 @@ for iTemplate = 1:length(templates)
         [~, ~, oldLUT] = read_annotation(annotFile);
         
         % Match and reorder 
-        [~, I] = ismember(strcat('ctx-lh-', oldLUT.struct_names), LUT.regionName);
+        [~, I] = ismember(strcat('ctx-lh-', oldLUT.struct_names), LUT.regionDescriptions);
         
         indxLeft = (parcellation.vol >=1000) & (parcellation.vol <2000);
         valuesLeft = parcellation.vol(indxLeft);
-        parcellation.vol(indxLeft) = LUT.ROI(I(valuesLeft - 1000 + 1));
+        parcellation.vol(indxLeft) = LUT.ROIs(I(valuesLeft - 1000 + 1));
         
         % RIGHT
         % Read original annotation file for orginal LUT
@@ -87,11 +91,11 @@ for iTemplate = 1:length(templates)
         [~, ~, oldLUT] = read_annotation(annotFile);
         
         % Match and reorder 
-        [~, I] = ismember(strcat('ctx-rh-', oldLUT.struct_names), LUT.regionName);
+        [~, I] = ismember(strcat('ctx-rh-', oldLUT.struct_names), LUT.regionDescriptions);
         
         indxRight = (parcellation.vol >= 2000) & (parcellation.vol < 3000);
         valuesRight = parcellation.vol(indxRight);
-        parcellation.vol(valuesRight) = LUT.ROI(I(valuesRight - 2000 + 1));   
+        parcellation.vol(indxRight) = LUT.ROIs(I(valuesRight - 2000 + 1));   
         
         save_nifti(parcellation, parcellationFile);
         
