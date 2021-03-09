@@ -78,7 +78,7 @@ if any(strcmpi(reconMethods, 'dti'))
     
     [thresCondNum, thresVarProjScores] = thresholdAssistant(gtab);
     
-    diffusionTensors = nan(nVoxels, 7);
+    diffusionTensors = nan(nVoxels, 6);
     if ~nonlinearitiesFlag
         diffusionTensors(indxV, :) = iRESTORE(signalIntensities(indxV, :), gtab, ...
             thresCondNum, thresVarProjScores);
@@ -327,6 +327,12 @@ if configParams.reconstruction_diffusion.exportNifti.exportNifti
     
     for iM = 1:length(exportMeasures)
         [~, indxMeasures] = ismember(exportMeasures{iM}, weightDescriptions);
+        if indxMeasures == 0
+            error(['Diffusion measure %s not available in ', ...
+                'diffusionmeasuresFile (%s). Make sure you run all ', ...
+                'reconstruction methods (e.g. DTI) necessary.'], ...
+                exportMeasures{iM}, diffusionMeasuresFile);
+        end
         diffusionMeasuresNifti.vol = diffusionMeasures(:, :, :, indxMeasures);
         save_nifti(diffusionMeasuresNifti, strrep(exportNiftiFile, ...
             'MEASURE', genvarname(strrep(exportMeasures{iM}, ' ', '_'))));

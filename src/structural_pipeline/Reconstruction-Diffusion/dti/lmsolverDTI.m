@@ -66,19 +66,29 @@ function [alphaVec, X2, r, exitFlag] = lmsolverDTI(alphaVec,B,S,weight)
 % func = @(t,p,c) exp(B*p)
 
 
-epsilon_1 = 1e-3;
-epsilon_2 = 1e-3;
-epsilon_3 = 1e-1;
+epsilon_1 = 1e-6;
+epsilon_2 = 1e-6;
+epsilon_3 = 1e-5;
 epsilon_4 = 1e-1;
 lambda_0 = 0.01;
 MaxIter = 100; % FASTER
 lambda_up = 11;
 lambda_down = 9;
 
+
+% epsilon_1 = 1e-3;
+% epsilon_2 = 1e-3;
+% epsilon_3 = 1e-1;
+% epsilon_4 = 1e-1;
+% lambda_0 = 0.01;
+% MaxIter = 100; % FASTER
+% lambda_up = 11;
+% lambda_down = 9;
+
 exitFlag = 0;
 
 if nargin < 4
-    weight = abs(1/(S'*S)) .* ones(length(S), 1);
+    weight = (numel(S) - numel(alphaVec) + 1)./ abs(1/(S'*S)) .* ones(length(S), 1);
 end
 
 Npar = length(alphaVec);
@@ -86,12 +96,11 @@ Npar = length(alphaVec);
 %%
 
 Shat = exp(B * alphaVec);
-J = B .* repmat(S, [1 7]);
+J = B .* repmat(Shat, [1 6]);
 JtWJ  = J' * ( J .* ( weight * ones(1,Npar) ) ); % JtWJ = J'*W*J;
 r = S - Shat; % residual error between model and data
 JtWdy = J' * ( weight .* r );
-X2 = Shat' * (Shat .* weight);
-
+X2 = r' * (r .* weight);
 
 if ( max(abs(JtWdy)) < epsilon_1 )
     exitFlag = 1;
@@ -130,7 +139,7 @@ while true
         lambda = max(lambda / lambda_down, 1e-7);
         
         Shat = exp(B * alphaVec);
-        J = B .* repmat(S, [1 7]);
+        J = B .* repmat(Shat, [1 6]);
         JtWJ  = J' * ( J .* ( weight * ones(1,Npar) ) );
         r = S - Shat;
         JtWdy = J' * ( weight .* r );        
