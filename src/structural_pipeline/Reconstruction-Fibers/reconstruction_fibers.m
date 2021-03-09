@@ -111,7 +111,7 @@ seedLocations = single([seedLocationI seedLocationJ seedLocationK]);
 % Distribute seed locations evenly in voxels
 m = nSeedsPerVoxel^(1/3);
 assert(m == round(m));
-[deltaI, deltaJ, deltaK] = meshgrid(1/(m+1):1/(m+1):1-1/(m+1));
+[deltaI, deltaJ, deltaK] = meshgrid(1/(2*m):1/m:1-1/(2*m));
 deltaXYZ = [deltaI(:) deltaJ(:) deltaK(:)]; % in voxel space
 
 % FEATURE: Use seeds per mm3?! Important for non-isotropic voxels
@@ -128,7 +128,7 @@ seedLocations = reshape(seedLocations, [], 3);
     % maxMemoryGB = maxMemoryGB*1e9 bytes
     nSeedsBatch = floor((maxMemoryGB*1e9) ./ (3*(4*maxFiberRadius+1)*4));
     
-    for i = 1:nSeedsPerVoxel
+    for i = 1:ceil(nSeeds ./ nSeedsBatch)
         seedsInBatch = (i-1)*nSeedsBatch+1:min(i*nSeedsBatch, nSeeds);
         thisSeedLocations = seedLocations(seedsInBatch, :);
         
