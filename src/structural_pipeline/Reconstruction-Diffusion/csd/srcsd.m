@@ -9,7 +9,7 @@ function [diffusion_peaks, test] = srcsd(signal_intensities, ...
 %     the fibre orientation distribution in diffusion MRI:
 %     Non-negativity constrained super-resolved spherical
 %     deconvolution
-% 
+%
 % INPUT VARIABLES
 % signal_intensities:
 % 2D matrix containing measured signal intensities.
@@ -23,7 +23,7 @@ function [diffusion_peaks, test] = srcsd(signal_intensities, ...
 % Structure with 1) response.S0 describing the average intensity in b0
 % scans and 2) response.evals a 3x1 vector with the first eigenvalue and
 % average of second and third eigenvalue.
-% 
+%
 % sh_order:
 % Maximal spherical harmonics order.
 %
@@ -48,7 +48,7 @@ function [diffusion_peaks, test] = srcsd(signal_intensities, ...
 %
 % OUTPUT VARIABLES
 % peak_indices:
-% 2D matrix listing for each voxel which vectors from the reconstruction 
+% 2D matrix listing for each voxel which vectors from the reconstruction
 % basis (see below) appear as local diffusion peaks.
 % Rows correspond to voxels and column numbers indicate the relative size
 % of the peaks (largest peaks are listed first).
@@ -115,74 +115,9 @@ ref_sh = real_sph_harm(m, n, ref_theta , ref_phi)';
 
 
 %% Prepare data
+weightedScans = gtab.bvals > 0;
 
-nWeightedScans = nnz(gtab.bvals > 0);
-nVoxels = size(signal_intensities, 1);
-nScans = size(gtab.bvals, 1);
-
-if nonlinearitiesFlag
-    % Correct expanded bvecs and bvalues (one set for each voxel).
-    % TODO: vectorize for-loop for speed improvements.
-    bvals = zeros(nScans, nVoxels);
-    bvecs = zeros(nScans, 3, nVoxels);
-    for iV = 1:nVoxels
-        I = eye(3);
-        v = gtab.bvecs*(I+reshape(nonlinearities(iV, :), [3 3]));
-        vNorm = sqrt(sum(v.^2, 2));
-        
-        bvecs(:, :, iV) = v ./ vNorm;
-        bvecs(vNorm == 0, :, iV) = 0;
-        bvals(:, iV) = vNorm.^2.*gtab.bvals;
-    end
-    gtab.bvecs = reshape(permute(bvecs, [1 3 2]), [], 3);
-    gtab.bvals = reshape(bvals, [], 1);
-end
-
-% convert gradient vectors to b-vectors
-bvals = gtab.bvals;
-bvecs = gtab.bvecs;
-weightedScans = bvals > 0;
-
-% convert cartesian bvec directions to spherical coordinates
-[~, S_theta, S_phi] = cart2sphere(bvecs(weightedScans, 1), ...
-    bvecs(weightedScans, 2), ...
-    bvecs(weightedScans, 3));
-
-% determine spherical harmonics of bvecs.
-Q = real_sph_harm(m, n, S_theta , S_phi)';
-
-% model
-response_DW = estimate_response(bvecs, bvals, ...
-    response.evals, response.S0);
-response_sh = linsolve(Q, response_DW(weightedScans));
-
-% Calculate the rotational harmonic decomposition up to
-% harmonic order `m`, degree `n` for an axially and antipodally
-% symmetric function. Note that all ``m != 0`` coefficients
-% will be ignored as axial symmetry is assumed. Hence, there
-% will be ``(sh_order/2 + 1)`` non-zero coefficients.
-mask = m == 0;
-dirac_sh = real_sph_harm(m(mask), n(mask), 0, 0);
-response_rh = response_sh(mask) ./ dirac_sh;
-
-% put r_rh in diagonal matrix.
-R = diag(response_rh(floor(n ./ 2)+1));
-
-% describe normalization lambda as in Dipy
-% https://github.com/dipy/dipy/pull/340/files/6e8ef5fe90b01cfb048d36ef02f277b4029f165d#
-lambda = (lambda * size(R, 1)  * response_rh(1) / ...
-    (sqrt(size(ref_sh, 1)) * sqrt(362)));
-
-B_ref_norm = lambda * ref_sh;
-X = Q * R;
-
-if nonlinearitiesFlag
-    % reshape X to 3D tensor (scans X basis * voxels).
-    X = reshape(X, nWeightedScans, nVoxels, []);
-    Xall = permute(X, [1 3 2]);
-    weightedScans = weightedScans(1:size(signal_intensities, 2));
-end
-
+[B_ref_norm, X] = calculateX(gtab, ref_sh, m, n, response, lambda);
 
 %% computation
 
@@ -200,7 +135,7 @@ for i = 1:size(signal_intensities, 1)
     s = signal_intensities(i, :)';
     
     if nonlinearitiesFlag
-       X = Xall(:, :, i);
+     [B_ref_norm, X] = calculateX(gtab, ref_sh, m, n, response, lambda, nonlinearities(i,:));
     end
     
     % remove unsuccessful measurements
@@ -240,11 +175,11 @@ for i = 1:size(signal_intensities, 1)
     
     if any(peak_values)
         [~, I] = sort(peak_values, 'descend');
-        m = min(outputPeaks, nnz(peak_values));
-        peak_indices(i, :) = [I(1:m)' zeros(1, outputPeaks - m)];
+        nPeaks = min(outputPeaks, nnz(peak_values));
+        peak_indices(i, :) = [I(1:nPeaks)' zeros(1, outputPeaks - nPeaks)];
     end
     
-end   
+end
 
 % find peaks
 reconBasis = [0 0 0; reconBasis];
@@ -254,15 +189,66 @@ for iP = 1:size(peak_indices, 2)
 end
 
 if any(~ismissing(exit_errors_all))
-   fprintf('Warning:\n');
-   exit_error_messages = categories(exit_errors_all);
-   exit_errors_count = countcats(exit_errors_all);
-   for i=1:length(exit_error_messages)
-       fprintf('In %i voxels: %s\n', exit_errors_count(i), ...
-           exit_error_messages{i});
-   end
+    fprintf('Warning:\n');
+    exit_error_messages = categories(exit_errors_all);
+    exit_errors_count = countcats(exit_errors_all);
+    for i=1:length(exit_error_messages)
+        fprintf('In %i voxels: %s\n', exit_errors_count(i), ...
+            exit_error_messages{i});
+    end
 end
 
 warning(warningsOld);
 
+
+function [B_ref_norm, X] = calculateX(gtab, ref_sh, m, n, response, lambda, nonlinearities)
+
+bvecs = gtab.bvecs;
+bvals = gtab.bvals;
+weightedScans = bvals > 0;
+
+% Correct expanded bvecs and bvalues (one set for each voxel).
+if nargin == 7
+    
+    v = gtab.bvecs*(eye(3)+reshape(nonlinearities, [3 3]));
+    vNorm = sqrt(sum(v.^2, 2));
+    
+    bvecs = v ./ vNorm;
+    bvecs(vNorm == 0, :) = 0;
+    bvals = vNorm.^2.*gtab.bvals;
+    
+end
+
+% convert cartesian bvec directions to spherical coordinates
+[~, S_theta, S_phi] = cart2sphere(bvecs(weightedScans, 1), ...
+    bvecs(weightedScans, 2), ...
+    bvecs(weightedScans, 3));
+
+% determine spherical harmonics of bvecs.
+Q = real_sph_harm(m, n, S_theta , S_phi)';
+
+% model
+response_DW = estimate_response(bvecs, bvals, ...
+    response.evals, response.S0);
+response_sh = linsolve(Q, response_DW(weightedScans));
+
+% Calculate the rotational harmonic decomposition up to
+% harmonic order `m`, degree `n` for an axially and antipodally
+% symmetric function. Note that all ``m != 0`` coefficients
+% will be ignored as axial symmetry is assumed. Hence, there
+% will be ``(sh_order/2 + 1)`` non-zero coefficients.
+mask = m == 0;
+dirac_sh = real_sph_harm(m(mask), n(mask), 0, 0);
+response_rh = response_sh(mask) ./ dirac_sh;
+
+% put r_rh in diagonal matrix.
+R = diag(response_rh(floor(n ./ 2)+1));
+
+% describe normalization lambda as in Dipy
+% https://github.com/dipy/dipy/pull/340/files/6e8ef5fe90b01cfb048d36ef02f277b4029f165d#
+lambda = (lambda * size(R, 1)  * response_rh(1) / ...
+    (sqrt(size(ref_sh,1)) * sqrt(362)));
+
+B_ref_norm = lambda * ref_sh;
+X = Q * R;
 
