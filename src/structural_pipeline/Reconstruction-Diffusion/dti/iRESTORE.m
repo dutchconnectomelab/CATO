@@ -85,7 +85,7 @@ for iVoxel = 1:nVoxels
     if isempty(S0) || isempty(Sweighted)
         exitErrors(iVoxel) = 'b0-scan or all weighted scans unsuccessful.';
         continue;
-    end    
+    end
     
     % Following de Reus (2015), the six diffusion tensor parameters are
     % iteratively fitted, but the S0 signal is estimated by the average
