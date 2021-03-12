@@ -14,7 +14,7 @@ function structural_preprocessing(configParams)
 
 status.structural_preprocessing = 'running';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Preprocessing started----\n');
+fprintf('---structural_preprocessing started----\n');
 
 % Initialize parameters:
 bValueScalingTol = configParams.general.bValueScalingTol;
@@ -193,5 +193,5 @@ end
 status.structural_preprocessing = 'finished';
 updateStatus(configParams.general.statusFile, status);
 
-fprintf('---Preprocessing finished----\n');
+fprintf('---structural_preprocessing finished----\n');
 

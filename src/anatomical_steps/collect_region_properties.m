@@ -10,7 +10,7 @@ function collect_region_properties(configParams)
 %% Initialization
 status.collect_region_properties = 'running';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Collect region properties started----\n');
+fprintf('---collect_region_properties started----\n');
 
 %% Loop over templates
 
@@ -19,6 +19,8 @@ templates = configParams.general.templates;
 for iTemplate = 1:length(templates)
    
     thisTemplate = templates{iTemplate};
+    
+    fprintf('template: %s\n', thisTemplate);
     
     % Prepare file names
     regionPropertiesFile = strrep(configParams.collect_region_properties.regionPropertiesFile, ...
@@ -151,13 +153,14 @@ for iTemplate = 1:length(templates)
     save(regionPropertiesFile, 'ROIs', 'propertyDescriptions', ...
                                'regionDescriptions', 'regionProperties', ...
                                'regionPropertiesTable');
+                           
     
 end
 
 %% Clean up
 status.collect_region_properties = 'finished';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Collect region properties finished----\n');
+fprintf('---collect_region_properties finished----\n');
 
 end
 
