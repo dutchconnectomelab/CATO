@@ -38,6 +38,14 @@ function configParams = structural_pipeline(subjectDir, varargin)
             
 %% Initialization
 
+fid = fopen('VERSION', 'r');
+if fid == -1 
+    catoVersion = 'unknown';
+else
+    catoVersion = fgetl(fid);
+    fclose(fid);
+end
+
 if verLessThan('matlab','9.3')
     warning('CATO:structuralPipeline:NotCompatible', ...
         ['CATO was developed and tested using MATLAB 2017b. Using an ' ...
@@ -210,9 +218,10 @@ updateStatus(configParams.general.statusFile, status);
 timeStart = datetime('now');
 
 fprintf('---CATO----\n');
-fprintf('Started at:\t%s\n', timeStart);
-fprintf('Subject name:\t%s\n', subjectName);
-fprintf('Subject directory:\t%s\n\n', subjectDir);
+fprintf('Version:             %s\n', catoVersion);
+fprintf('Started at:          %s\n', timeStart);
+fprintf('Subject name:        %s\n', subjectName);
+fprintf('Subject directory:   %s\n\n', subjectDir);
 
 fprintf('Run pipeline steps:\n');
 fprintf('%s\n', reconStepNames{:});

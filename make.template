@@ -135,7 +135,7 @@ main() {
     target="$tmpdir/structural_pipeline_bin" # Assume target contains no spaces.
 
     # extract MATLAB binary
-    echo "Prepare CATO..."
+    echo "Prepare CATO-VERSION..."
     extractData
 
     # set up MCR environment
