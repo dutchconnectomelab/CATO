@@ -24,9 +24,11 @@ templates = configParams.general.templates;
 
 %% Reconstruct networks for each template and each method.
 for iTemplate = 1:length(templates)
+    thisTemplate = templates{iTemplate};
+    
     for iMethod = 1:length(reconstructionMethods)
         thisMethod = reconstructionMethods{iMethod};
-        thisTemplate = templates{iTemplate};
+        fprintf('%s - %s\n', thisTemplate, upper(thisMethod));
         
         %% Initialize
         thisRegionPropertiesFile = strrep(regionPropertiesFile, ...
@@ -129,7 +131,7 @@ for iTemplate = 1:length(templates)
         
         save(thisConnectivityMatrixFile, 'ROIs', 'connectivity', ...
             'regionDescriptions', 'weightDescriptions');
-        
+                
     end
 end
 

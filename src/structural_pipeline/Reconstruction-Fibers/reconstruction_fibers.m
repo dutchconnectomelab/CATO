@@ -8,7 +8,7 @@ function reconstruction_fibers(configParams)
 
 status.reconstruction_fibers = 'running';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Reconstruction fibers started----\n');
+fprintf('---reconstruction_fibers started----\n');
 
 % Prepare variables
 maxMemoryGB = configParams.general.maxMemoryGB;
@@ -54,7 +54,7 @@ thisMethod = reconMethods{iMethod};
 
 %% Initialize
 
-disp([thisMethod ' fiber reconstruction started']);
+fprintf('reconstruction method: %s\n', upper(thisMethod));
 
 % Prepare dynamic variables
 thisDiffusionPeaksFile = strrep(diffusionPeaksFile, 'METHOD', thisMethod);
@@ -140,11 +140,9 @@ seedLocations = reshape(seedLocations, [], 3);
 
     end
     
-disp([thisMethod ' fiber reconstruction finished']);
-
 end
 
 status.reconstruction_fibers = 'finished';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Reconstruction fibers finished----\n');
+fprintf('---reconstruction_fibers finished----\n');
 

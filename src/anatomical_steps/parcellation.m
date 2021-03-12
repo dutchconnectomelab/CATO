@@ -8,7 +8,7 @@ function parcellation(configParams)
 
 status.parcellation = 'running';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Parcellation started----\n');
+fprintf('---parcellation started----\n');
 
 freesurferDir = configParams.general.freesurferDir;
 templates = configParams.general.templates;
@@ -28,6 +28,7 @@ matchROIsFlag = configParams.parcellation.matchROIs;
 for iTemplate = 1:length(templates)
     
     thisTemplate = templates{iTemplate};
+    fprintf('template: %s\n', thisTemplate);
     
     templateScript = strrep(configParams.parcellation.templateScript, ...
         'TEMPLATE', thisTemplate);
@@ -42,8 +43,6 @@ for iTemplate = 1:length(templates)
         ' --parcellationFile="', parcellationFile, '"', ...
         ' --forceFreesurferOverwrite="', forceFreesurferOverwrite, '"'];
     
-    fprintf('Template: %s\n', thisTemplate);
-
     exitCode = system(cmd);
     
     if exitCode ~=0
@@ -107,4 +106,4 @@ end
 
 status.parcellation = 'finished';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Parcellation finished----\n');
+fprintf('---parcellation finished----\n');
