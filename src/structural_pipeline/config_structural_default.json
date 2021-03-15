@@ -74,7 +74,7 @@
 			"tau": 0.1,
 			"CCRegions": [251, 252, 253, 254, 255],
 			"FAThreshold": 0.7,
-			"outputPeaks": 2,
+			"outputPeaks": 4,
 			"minPeakRatio": 0.1,
 			"maxPeaks": 8
 		},
