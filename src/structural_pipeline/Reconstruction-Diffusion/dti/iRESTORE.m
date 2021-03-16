@@ -26,7 +26,28 @@ function diffusionTensor = iRESTORE(signalIntensities, gtab, thresCondNum, thres
 %
 %   OUTPUT VARIABLES
 %   diffusionTensor:
-%   nVoxels x 7 matrix with the estimated diffusion tensor parameters.
+%   nVoxels x 6 matrix with the estimated diffusion tensor parameters.
+
+%   References:
+%
+%   de Reus, M. A. (2015). An eccentric perspective on brain networks
+%   (Doctoral dissertation, Uitgeverij BOXPress).
+%
+%   Kingsley, P. B. (2006). Introduction to diffusion tensor imaging
+%   mathematics: Part III. Tensor calculation, noise, simulations, and
+%   optimization. Concepts in Magnetic Resonance Part A, 28(2), 155-179.
+%
+%   Chang, L. C., Jones, D. K., & Pierpaoli, C. (2005). RESTORE: robust
+%   estimation of tensors by outlier rejection. Magnetic Resonance in
+%   Medicine: An Official Journal of the International Society for Magnetic
+%   Resonance in Medicine, 53(5), 1088-1095.
+%
+%   Chang, L. C., Walker, L., & Pierpaoli, C. (2012). Informed RESTORE: a
+%   method for robust estimation of diffusion tensor from low redundancy
+%   datasets in the presence of physiological noise artifacts. Magnetic
+%   resonance in medicine, 68(5), 1654-1663.
+
+
 
 MIN_POSITIVE_SIGNAL = 0.0001;
 MAX_ITERATION = 400;
@@ -37,20 +58,15 @@ else
     nonlinearitiesFlag = true;
 end
 
-% double-type signalIntensities is faster than single-type
-signalIntensities = double(signalIntensities);
+signalIntensities = double(signalIntensities); % double is faster than single
 
 nVoxels = size(signalIntensities, 1);
 weightedScansAll = gtab.bvals > 0;
 
-% All initial values are called All (later outliers are excluded)
-% Get b-vecs and first scan is (average) b0.
-Ball = getGradientMatrix(gtab);
-Sall = [mean(signalIntensities(:, ~weightedScansAll), 2), ...
-    signalIntensities(:, weightedScansAll)]';
+% Get B matrix with average b0-scans.
+[gtabCorrected, Ball] = getGradientMatrix(gtab);
 
-% Prepare iterating over all voxels.
-diffusionTensor = nan(nVoxels, 7, 'single');
+diffusionTensor = nan(nVoxels, 6, 'single');
 
 warningsOld = warning();
 warning('error', 'MATLAB:nearlySingularMatrix'); %#ok
@@ -60,38 +76,40 @@ exitErrors = categorical(repmat({''}, nVoxels, 1));
 
 for iVoxel = 1:nVoxels
     
-    indx_succesful = Sall(:, iVoxel) >= MIN_POSITIVE_SIGNAL;
-
-    % If b0-scan is unsuccessful, skip this voxel.
-    if ~indx_succesful(1)
-        exitErrors(iVoxel) = 'b0-scan unsuccessful.';
+    Sall = signalIntensities(iVoxel, :)';
+    indx_succesful = Sall >= MIN_POSITIVE_SIGNAL;
+    
+    Sweighted = Sall(weightedScansAll & indx_succesful);
+    S0 = Sall(~weightedScansAll & indx_succesful);
+    
+    if isempty(S0) || isempty(Sweighted)
+        exitErrors(iVoxel) = 'b0-scan or all weighted scans unsuccessful.';
         continue;
-    end    
-    
-    S = Sall(indx_succesful, iVoxel);
-    
-    if nonlinearitiesFlag
-        Ball = getGradientMatrix(gtab, nonlinearities(iVoxel, :));
     end
     
-    B = Ball(indx_succesful, :);
-    weightedScans = weightedScansAll(indx_succesful);
-    nWeighted = nnz(any(B(:, 1:6), 2));
+    % Following de Reus (2015), the six diffusion tensor parameters are
+    % iteratively fitted, but the S0 signal is estimated by the average
+    % signal of the unweighted scans.
+    S = Sweighted ./ mean(S0);
     
+    if nonlinearitiesFlag
+        [gtabCorrected, Ball] = getGradientMatrix(gtab, nonlinearities(iVoxel, :));
+    end
     
-    % 1. A rough estimation of the diffusion tensor D is obtained using a
-    % weighted linear least squares fit of the natural logarithm of the signal.
+    B = Ball(indx_succesful(weightedScansAll), :);
+    nWeighted = size(B, 1);
     
-    % Erors will be less if the tensor elements are combined before calculating
-    % the tensor.
-    x = log(S); % eq [18]
-       
-    % SigmaInv = diag((S.^2) / SigmaSquared)
-    % SigmaSquared is the same in each image (assuming all images have same
-    % noise level) and disappears.
-    SigmaInv = diag(S.^2); % eq [52]
+    % First a rough estimation is made of the diffusion tensor alphaVec
+    % using a weighted linear least squares fit of the natural logarithm of
+    % the signal.
+    %
+    % SigmaInv = diag((S.^2) / SigmaSquared) where SigmaSquared is the
+    % same in each image (assuming all images have same noise level) and
+    % disappears (eq 52, Kingsley 2005).
     
-    % alpha is seven-element column vector reconstruction of signal intensity
+    x = log(S);
+    SigmaInv = diag(S.^2);
+    
     try
         alphaVec = (B'*SigmaInv*B)\(B'*SigmaInv)*x; % eq[51]
     catch ME
@@ -105,93 +123,85 @@ for iVoxel = 1:nVoxels
         end
     end
     
-    % 2. The diffusion tensor is fitted using a nonlinear least-squares method
+    % The diffusion tensor is fitted using a nonlinear least-squares method
     % using the linear fit as initial guess of parameters.
-    [alphaVec, resNorm, r, exitFlag] = lmsolverDTI(alphaVec, B, S);
+    [alphaVec, ~, r, exitFlag] = lmsolverDTI(alphaVec, B, S);
     if exitFlag == 4
         exitErrors(iVoxel) = ['Nonlinear least-squares method did not ', ...
             'converge to initial guess of parameters.'];
        continue 
     end
     
-    % Evaluate results of first fitting against goodnes-of-fit criterion
-    
-    % Test whether all data points lie within the confidence interval of 3xSD
-    % of signal.
-    % RMAD from iRESTORE paper p. 1656
+    % Evaluate results of first fitting against goodnes-of-fit criterion.
+    % If the residuals of all datapoints are within the CI (3*SD) then
+    % assume no outliers and accept results with no further processing
+    % (p1089, Chang 2004). SD is defined in (p1656, Chang 2012).
+    %
     % TODO FEATURE: select voxels from centrum semiovale rostral to the corpus
     % callosum
     % TODO FEATURE: exclude some voxels as outliers
-    CI = sqrt(nWeighted / (nWeighted - 7)) * median(abs(r - median(r)));
+    SD = sqrt(nWeighted / (nWeighted - 6)) * median(abs(r - median(r)));
     
-    % If the residuals of all datapoints are within the CI then assume no
-    % outliers and accept results with no further processing.
-    if all(abs(r) < 3*CI) || (CI < eps)
+    if all(abs(r) < 3*SD) || (SD < eps)
         diffusionTensor(iVoxel, :) = alphaVec;
         continue
     end
     
     % Initiale iterative reweighting using GMM weighting function
-    % The weight for each data point is normalized to the average of al lthe
-    % weighting factors to yeald the maximum likelihood
-    
-    % 3. An iterative reweighting process of the signal variance and outlier
-    % detection is performed providing the final parameter fit.
-    resNormOld = resNorm;
+    % The weight (omega) for each data point is normalized to the average of all lthe
+    % weighting factors to yield the maximum likelihood (p1089, Chang
+    % 2004). The convergence criterionis  less than one percent change of
+    % fitted tensor parameters.
+    alphaVecOld = alphaVec;
     counter = 0;
     while (counter < MAX_ITERATION)
         
         C = 1.4826 * median(abs(r - median(r)));
         omega = 1 ./ (r.^2 + C.^2);
-        omega = omega ./ mean(omega);  % DIPY: weights normalized to mean weight (see p. 1089)
+        omega = omega ./ mean(omega);  
         
         if any(isnan(omega))
             break;
         end
         
-        [alphaVec, resNorm, r, exitFlag] = lmsolverDTI(alphaVec, B, S, omega);
+        [alphaVec, ~, r, exitFlag] = lmsolverDTI(alphaVec, B, S, omega);
         
         if exitFlag == 4
             break
         end
         
-        % convergence criterion: less than one percent increase
-        if (abs(resNorm - resNormOld) / resNormOld) < 0.01
+        if all(abs((alphaVec - alphaVecOld)./alphaVecOld) < 0.01)
             break;
         end
         
         counter = counter + 1;
-        resNormOld = resNorm;
+        alphaVecOld = alphaVec;
+
     end
 
+    % Points outside the confidence interval (3*SD original signal) are
+    % outliers (p1089, Chang 2004).
+    SD = sqrt(nWeighted / (nWeighted - 6)) * median(abs(r - median(r)));
+    indxOutliers = abs(r) > 3*SD;
     
-    % Points outside CI are identified as outliers and excluded
-    CI = sqrt(nWeighted / (nWeighted - 7)) * median(abs(r - median(r)));
-    indxOutliers = abs(r) > 3*CI;
+    % Check b-matrix ill-conditioned or directionally unbalanced.
+    % Coefficient of variation in the average projection scores calculated
+    % following (eq. [2.10], page 38, de Reus 2015).
+    condNum = cond(B(~indxOutliers, :));
     
-    % sigmaSquared is the signal SD.
-    % m = size(S, 1);
-    % sigmaSquared = (s.^2) / (m - 6 + 1);
-    
-    % Condition number of matrix H (B) is smaller than threshold t_c after
-    % eliminating outliers.
-    condNum = cond(B(~indxOutliers, 1:6));
-    
-    % Calculate coefficient of variation in the average projection scores
-    % (eq. [2.10], page 38)
-    Bnorm = B ./ sqrt(sum(B.^2, 2));
-    projScores = mean(abs(Bnorm(weightedScans, :) * Bnorm(weightedScans & ~indxOutliers, :)'), 2);
+    G = gtabCorrected.bvecs(weightedScansAll & indx_succesful, :);
+    projScores = mean(abs(gtabCorrected.bvecs * G(~indxOutliers, :)'), 2);
     varProjScores = std(projScores) / mean(projScores);
     
     if condNum >= thresCondNum || varProjScores >= thresVarProjScores
         indxOutliers = false(size(indxOutliers));
     end
     
-    % Other points are weighted equally in nonlinear LS method
-    S = S(~indxOutliers);
-    B = B(~indxOutliers, :);
+    % Final tensor fit with equal weights
+    [alphaVec, ~, ~, exitFlag] = lmsolverDTI(alphaVec, ...
+        B(~indxOutliers, :), S(~indxOutliers), ...
+        1/SD^2 .* ones(nnz(~indxOutliers), 1));
     
-    [alphaVec, ~, ~, exitFlag] = lmsolverDTI(alphaVec, B, S);
     if exitFlag == 4
         exitErrors(iVoxel) = ['Final nonlinear least-squares method ', ...
             'did not converge.'];
@@ -215,7 +225,7 @@ warning(warningsOld);
 
 end
 
-function B = getGradientMatrix(gtab, nonlinearities)
+function [gtabC, B] = getGradientMatrix(gtab, nonlinearities)
 % GETGRADIENTMATRIX convert gradient table to B matrix.
 %
 % Notes: nonlinearities is a 3x3 matrix.
@@ -234,25 +244,22 @@ I = eye(3);
 v = gtab.bvecs*(I+nonlinearities);
 n = sqrt(sum(v.^2, 2));
 
-gtab.bvecs = v ./ n;
-gtab.bvecs(n == 0, :) = 0;
-gtab.bvals = n.^2.*gtab.bvals;
+gtabC.bvecs = v ./ n;
+gtabC.bvecs(n == 0, :) = 0;
+gtabC.bvals = n.^2.*gtab.bvals;
 
 % B is inverse design matrix
 % Design matrix or B matrix assuming Gaussian distributed tensor model
-weightedScans = gtab.bvals > 0;
-B = nan(length(gtab.bvals), 7);  % eq [2]
-B(:, 1) = -gtab.bvecs(:, 1) .* gtab.bvecs(:, 1) .* 1 .* gtab.bvals;   % Bxx
-B(:, 2) = -gtab.bvecs(:, 2) .* gtab.bvecs(:, 2) .* 1 .* gtab.bvals;   % Byy
-B(:, 3) = -gtab.bvecs(:, 3) .* gtab.bvecs(:, 3) .* 1 .* gtab.bvals;   % Bzz
-B(:, 4) = -gtab.bvecs(:, 1) .* gtab.bvecs(:, 2) .* 2 .* gtab.bvals;   % Bxy
-B(:, 5) = -gtab.bvecs(:, 1) .* gtab.bvecs(:, 3) .* 2 .* gtab.bvals;   % Bxz
-B(:, 6) = -gtab.bvecs(:, 2) .* gtab.bvecs(:, 3) .* 2 .* gtab.bvals;   % Byz
-B(:, 7) = ones(size(gtab.bvals));
+weightedScans = gtabC.bvals > 0;
+B = nan(length(gtabC.bvals), 6);  % eq [2]
+B(:, 1) = -gtabC.bvecs(:, 1) .* gtabC.bvecs(:, 1) .* 1 .* gtabC.bvals;   % Bxx
+B(:, 2) = -gtabC.bvecs(:, 2) .* gtabC.bvecs(:, 2) .* 1 .* gtabC.bvals;   % Byy
+B(:, 3) = -gtabC.bvecs(:, 3) .* gtabC.bvecs(:, 3) .* 1 .* gtabC.bvals;   % Bzz
+B(:, 4) = -gtabC.bvecs(:, 1) .* gtabC.bvecs(:, 2) .* 2 .* gtabC.bvals;   % Bxy
+B(:, 5) = -gtabC.bvecs(:, 1) .* gtabC.bvecs(:, 3) .* 2 .* gtabC.bvals;   % Bxz
+B(:, 6) = -gtabC.bvecs(:, 2) .* gtabC.bvecs(:, 3) .* 2 .* gtabC.bvals;   % Byz
 
-% First scan is (average) b0-weighted scan
-B0 = mean(B(~weightedScans, :), 1);
-Bweighted = B(weightedScans, :);
-B = [B0; Bweighted];
+% Include only weighted scans as we divide by b0.
+B = B(weightedScans, :);
 
 end

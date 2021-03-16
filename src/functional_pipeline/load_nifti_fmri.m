@@ -27,4 +27,4 @@ end
 %% Read nifti partially
 % Load only voxels that are selected in brainMask.
 fmri = load_nifti_partially(fmriProcessedTMPFile, brainMask);
-fmri = fmri.partialvol;
+fmri = single(fmri.partialvol);

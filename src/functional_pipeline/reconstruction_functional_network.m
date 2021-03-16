@@ -8,7 +8,7 @@ function reconstruction_functional_network(configParams)
 %% Initialization
 status.reconstruction_functional_network = 'running';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Reconstruction_functional_network started----\n');
+fprintf('---reconstruction_functional_network started----\n');
 
 % Run preprocessing for several settings.
 methods = fieldnames(configParams);
@@ -236,6 +236,7 @@ for iMethod = 1:length(methods)
     
     for iTemplate = 1:length(templates)
         thisTemplate = templates{iTemplate};
+        fprintf('template: %s\n', thisTemplate);
         
         thisParcellationFile = strrep(parcellationFile, ...
             'TEMPLATE', thisTemplate);
@@ -287,11 +288,11 @@ for iMethod = 1:length(methods)
     end
     
     clear selectedTimeSeries
-    
+        
 end
 
 %% Clean up
 status.reconstruction_functional_network = 'finished';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Reconstruction_functional_network finished----\n');
+fprintf('---reconstruction_functional_network finished----\n');
 

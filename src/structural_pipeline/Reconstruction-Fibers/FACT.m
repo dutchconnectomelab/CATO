@@ -74,8 +74,10 @@ previousMask = ones(2*nSeedLocations,1);
 
 fibers = zeros(3, 4*maxFiberRadius+1, nSeedLocations, 'single');
 fibers(:, 2*maxFiberRadius + 1, :) = seedLocations'; % start point of each tracker
-fiberStepCount = zeros(nSeedLocations, 1); % stepwise length of each fiber
+fiberStepCount = zeros(2*nSeedLocations, 1); % stepwise length of each fiber
 trackerIndPrevious = zeros(2*nSeedLocations, 2);
+trackerIndPrevious(:, 1) = [trackerVoxelInd; trackerVoxelInd];
+
 
 for iStep = 1:maxFiberRadius
         
@@ -157,9 +159,11 @@ for iStep = 1:maxFiberRadius
     if any(~indx) 
         fibers(:, 2*maxFiberRadius + 2*iStep, trackerIndx(~indx) - nSeedLocations) = trackerBoundary(~indx,:)';
         fibers(:, 2*maxFiberRadius + 2*iStep + 1, trackerIndx(~indx) - nSeedLocations) = tracker(~indx,:)';
-        fiberStepCount(trackerIndx(~indx) - nSeedLocations) = iStep;
+        fiberStepCount(trackerIndx(~indx)) = iStep;
     end
 end
 
 % Exclude fibers traversing only 2 voxels.
-fibers = fibers(:, :, fiberStepCount>2);
+% fiberStepCount = fiberStepCount(1:nSeedLocations) ...
+%     + fiberStepCount(nSeedLocations+1:2*nSeedLocations);
+% fibers = fibers(:, :, fiberStepCount>2);

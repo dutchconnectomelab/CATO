@@ -45,8 +45,8 @@ parse_input()
             parcellationFile=${1#*=}
             shift       
         ;;            
-        --forceFreesurferOVerwrite=*)
-            forceFreesurferOVerwrite=${1#*=}
+        --forceFreesurferOverwrite=*)
+            forceFreesurferOverwrite=${1#*=}
             shift       
         ;;
     --*=*)

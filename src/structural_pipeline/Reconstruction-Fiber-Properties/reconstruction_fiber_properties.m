@@ -33,7 +33,9 @@ for iTemplate = 1:length(templates)
 for iMethod = 1:length(reconMethods) 
     thisMethod = reconMethods{iMethod};
     thisTemplate = templates{iTemplate};
-
+    
+    fprintf('%s - %s\n', thisTemplate, upper(thisMethod));
+    
     % Prepare dynamic variables
     thisParcellationFile = strrep(parcellationFile, 'TEMPLATE', thisTemplate);
     thisROIsFile = strrep(ROIsFile, 'TEMPLATE', thisTemplate);
@@ -52,7 +54,7 @@ for iMethod = 1:length(reconMethods)
     
     % Save properties
     save(thisfiberPropertiesFile, 'fiberProperties', 'propertyDescriptions');
-
+    
 end
 end
 
