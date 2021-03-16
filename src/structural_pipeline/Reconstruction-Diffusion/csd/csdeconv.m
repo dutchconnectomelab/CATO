@@ -50,6 +50,7 @@ fodf = B_reg(:, 1:15) * fodf_sh(1:15);
 % The mean of an fodf can be computed by taking $Y_{0,0} * coeff_{0,0}$
 % tau was set to 10% of the mean FOD amplitude.
 threshold = B_reg(1, 1) * fodf_sh(1) * tau;
+threshold = max(threshold, 0);
 where_fodf_small = find(fodf < threshold);
 
 % If the low-order fodf does not have any values less than threshold, the
@@ -91,6 +92,5 @@ for i_num = 1:convergence
 end
 
 if i_num == convergence
-    fodf_sh = zeros(size(M, 2));
     exitError = sprintf('Spherical deconvolution (csdeconv.m) failed to converge.');
 end

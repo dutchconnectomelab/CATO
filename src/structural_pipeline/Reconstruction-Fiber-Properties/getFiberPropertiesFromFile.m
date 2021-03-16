@@ -158,6 +158,12 @@ while true
             end
             
             distancesSegmentIndx = stepDistancesPoints(segmentIndx);
+            
+            % Special case of GM - WM -GM with WM point on corner of voxel.
+            if distancesSegmentIndx == 0
+                continue
+            end
+            
             fiberLength(counter) = sum(distancesSegmentIndx);
             
             % Compatibility option.

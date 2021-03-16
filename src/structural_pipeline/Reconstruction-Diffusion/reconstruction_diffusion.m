@@ -74,11 +74,11 @@ nVoxels = size(signalIntensities, 1);
 
 %% DTI reconstruction
 if any(strcmpi(reconMethods, 'dti'))
-    disp('DTI reconstruction started');
+    fprintf('reconstruction method: DTI\n');
     
     [thresCondNum, thresVarProjScores] = thresholdAssistant(gtab);
     
-    diffusionTensors = nan(nVoxels, 7);
+    diffusionTensors = nan(nVoxels, 6);
     if ~nonlinearitiesFlag
         diffusionTensors(indxV, :) = iRESTORE(signalIntensities(indxV, :), gtab, ...
             thresCondNum, thresVarProjScores);
@@ -96,13 +96,13 @@ if any(strcmpi(reconMethods, 'dti'))
     
     clear diffusionPeaks diffusionMeasures
     
-    disp('DTI reconstruction finished');
+    
 end
 
 %% CSD reconstruction
 if any(strcmpi(reconMethods, 'csd'))
     
-    disp('CSD reconstruction started');
+    fprintf('reconstruction method: CSD\n');
         
     CCRegions = configParams.reconstruction_diffusion.CSD.CCRegions;
     FAThreshold = configParams.reconstruction_diffusion.CSD.FAThreshold;
@@ -161,14 +161,13 @@ if any(strcmpi(reconMethods, 'csd'))
     
     clear diffusionPeaks
     
-    disp('CSD reconstruction finished');
     
 end
 
 %% GQI reconstruction
 if any(strcmpi(reconMethods, 'gqi'))
     
-    disp('GQI reconstruction started');
+    fprintf('reconstruction method: GQI\n');
     
     outputPeaks = configParams.reconstruction_diffusion.GQI.outputPeaks;
     minPeakRatio = configParams.reconstruction_diffusion.GQI.minPeakRatio;
@@ -234,14 +233,13 @@ if any(strcmpi(reconMethods, 'gqi'))
     
     clear diffusionMeasures diffusionMeasuresGQI diffusionPeaks
     
-    disp('GQI reconstruction finished');
     
 end
 
 %% GQI_DTI reconstruction
 if any(strcmpi(reconMethods, 'gqi_dti'))
     
-    disp('GQI_DTI reconstruction started');
+    fprintf('reconstruction method: GQI_DTI\n');
     
     try
         diffusionPeaksDTI = load(strrep(diffusionPeaksFile, 'METHOD', 'dti'), 'diffusionPeaks');
@@ -269,14 +267,14 @@ if any(strcmpi(reconMethods, 'gqi_dti'))
     
     save(strrep(diffusionPeaksFile, 'METHOD', 'gqi_dti'), 'diffusionPeaks');
     
-    disp('GQI_DTI reconstruction finished');
     
 end
 
 %% CSD_DTI reconstruction
 if any(strcmpi(reconMethods, 'csd_dti'))
     
-    disp('CSD_DTI reconstruction started');
+    fprintf('reconstruction method: CSD_DTI\n');
+
     try
         diffusionPeaksDTI = load(strrep(diffusionPeaksFile, 'METHOD', 'dti'), 'diffusionPeaks');
         diffusionPeaksDTI = diffusionPeaksDTI.diffusionPeaks;
@@ -303,7 +301,6 @@ if any(strcmpi(reconMethods, 'csd_dti'))
     
     clear diffusionPeaksDTI diffusionPeaksCSD diffusionPeaks
     
-    disp('CSD_DTI reconstruction finished');
     
 end
 
@@ -327,6 +324,12 @@ if configParams.reconstruction_diffusion.exportNifti.exportNifti
     
     for iM = 1:length(exportMeasures)
         [~, indxMeasures] = ismember(exportMeasures{iM}, weightDescriptions);
+        if indxMeasures == 0
+            error(['Diffusion measure %s not available in ', ...
+                'diffusionmeasuresFile (%s). Make sure you run all ', ...
+                'reconstruction methods (e.g. DTI) necessary.'], ...
+                exportMeasures{iM}, diffusionMeasuresFile);
+        end
         diffusionMeasuresNifti.vol = diffusionMeasures(:, :, :, indxMeasures);
         save_nifti(diffusionMeasuresNifti, strrep(exportNiftiFile, ...
             'MEASURE', genvarname(strrep(exportMeasures{iM}, ' ', '_'))));

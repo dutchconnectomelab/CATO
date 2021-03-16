@@ -14,7 +14,7 @@ function functional_preprocessing(configParams)
 
 status.functional_preprocessing = 'running';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Preprocessing started----\n');
+fprintf('---functional_preprocessing started----\n');
 
 %% Run preprocessing scripts
 
@@ -49,5 +49,5 @@ end
 status.functional_preprocessing = 'finished';
 updateStatus(configParams.general.statusFile, status);
 
-fprintf('---Preprocessing finished----\n');
+fprintf('---functional_preprocessing finished----\n');
 
