@@ -30,6 +30,7 @@ for iMethod = 1:length(methods)
     parcellationFile = configParams.parcellation.parcellationFile;
     templates = configParams.general.templates;
     templatesDir = configParams.general.templatesDir;
+    lutFile = configParams.parcellation.lutFile;
     
     % Regression parameters
     regression = configParams.(methods{iMethod}).regression;
@@ -248,9 +249,9 @@ for iMethod = 1:length(methods)
         thisTimeSeriesFile = strrep(strrep(timeSeriesFile, ...
             'METHOD', thisMethodDescription), ...
             'TEMPLATE', thisTemplate);
-        thisLutFile = fullfile(templatesDir, thisTemplate, ...
-            [thisTemplate '.annot.ctab']);
-        
+        thisLutFile = strrep(lutFile, ...
+            'TEMPLATE', thisTemplate);
+
         parcellation = load_nifti(thisParcellationFile);
         parcellation = single(parcellation.vol(brainPrevalenceMask));
         ROIs = dlmread(thisROIsFile);
