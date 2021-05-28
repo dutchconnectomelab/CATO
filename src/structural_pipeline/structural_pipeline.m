@@ -196,7 +196,7 @@ end
 reconStepNames = reconStepNames(runSteps);
 reconStepNames = reconStepNames(:);
 
-%% Start logging
+%% Setup pipeline (outputDir, logfile, #threads and welcome message)
 
 [succes, message] = mkdir(configParams.general.outputDir);
 if ~succes
@@ -212,6 +212,14 @@ catch
 end
 cleanupLog = onCleanup(@() diary('off'));
 
+% Set maximum number of cores
+if configParams.general.maxNumberCompThreads == 0
+maxNumCompThreads('automatic');
+else
+    maxNumCompThreads(configParams.general.maxNumberCompThreads);
+end
+nNumCompThreads = maxNumCompThreads;
+    
 status.general = 'running';
 updateStatus(configParams.general.statusFile, status);
 
@@ -220,6 +228,7 @@ timeStart = datetime('now');
 fprintf('---CATO----\n');
 fprintf('Version:             %s\n', catoVersion);
 fprintf('Started at:          %s\n', timeStart);
+fprintf('Number of threads:   %i\n', nNumCompThreads);
 fprintf('Subject name:        %s\n', subjectName);
 fprintf('Subject directory:   %s\n\n', subjectDir);
 

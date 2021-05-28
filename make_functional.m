@@ -81,8 +81,6 @@ delete(cleanFiles{:})
 if ismac
     cleanDir = fullfile(targetDir, cleanDir);
     rmdir(cleanDir, 's');
-elseif isunix
-    delete(fullfile(targetDir, 'functional_pipeline_bin'));
 end
 
 mkdir(fullfile(targetDir, 'templates'));
