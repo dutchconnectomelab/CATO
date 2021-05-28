@@ -29,6 +29,7 @@
 		"logFile": "OUTPUTDIR/structural_pipeline.log",
 		"statusFile": "OUTPUTDIR/structural_pipeline.STATUS",		
 		"computedConfigFile": "OUTPUTDIR/structural_configuration.json",
+		"maxNumberCompThreads": 1,
 		"maxMemoryGB": 2
 	},
 	"structural_preprocessing":{ 

@@ -18,6 +18,7 @@
 		"logFile": "OUTPUTDIR/functional_pipeline.log",
 		"statusFile": "OUTPUTDIR/functional_pipeline.STATUS",		
 		"computedConfigFile": "OUTPUTDIR/functional_configuration.json",
+		"maxNumberCompThreads": 1,
 		"TEMPDIR": "",
 		"fmriProcessedTMPFile": "TEMPDIR/SUBJECT_fmri.nii"
 	},
