@@ -11,9 +11,9 @@ Full documentation is provided on the CATO website [http://www.dutchconnectomela
 
 ## Reference
 The toolbox is presented in:
-> Structural and functional connectivity reconstruction with CATO - Connectivity Analysis TOolbox
+> [Structural and functional connectivity reconstruction with CATO - A Connectivity Analysis TOolbox](https://www.biorxiv.org/content/10.1101/2021.05.31.446012v1)
 >
-> de Lange SC, van den Heuvel MP, 2020
+> de Lange SC, van den Heuvel MP, bioRxiv, 2021
 
 ## Installation
 An installation guide and more information about additionally needed software is provided on the [installation section on the website](http://www.dutchconnectomelab.nl/CATO/docs/installation.html). This page provides also [direct links to the macOS and UNIX executables](http://www.dutchconnectomelab.nl/CATO/docs/installation.html#download).
