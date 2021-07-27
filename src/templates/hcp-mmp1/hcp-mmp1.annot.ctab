@@ -384,7 +384,7 @@
 702	GrayMatter-FSL-FAST                            	205	62	78	0
 703	WhiteMatter-FSL-FAST                           	0	225	0	0
 999	SUSPICIOUS                                     	255	100	100	0
-1000	unkown                                         	255	255	255	255
+1000	ctx-lh-unkown                                  	255	255	255	255
 1001	ctx-lh-V1                                      	63	5	255	0
 1002	ctx-lh-MST                                     	54	103	129	0
 1003	ctx-lh-V6                                      	62	78	178	0
@@ -565,7 +565,7 @@
 1178	ctx-lh-PI                                      	122	50	50	0
 1179	ctx-lh-a32pr                                   	130	63	87	0
 1180	ctx-lh-p24                                     	123	35	74	0
-2000	unkown                                         	255	255	255	255
+2000	ctx-rh-unkown                                  	255	255	255	255
 2001	ctx-rh-V1                                      	62	0	255	0
 2002	ctx-rh-MST                                     	50	112	128	0
 2003	ctx-rh-V6                                      	67	90	180	0
