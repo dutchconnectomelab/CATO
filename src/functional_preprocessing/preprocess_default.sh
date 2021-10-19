@@ -148,7 +148,7 @@ fi
 
 bbregister --s "$freesurferDir" --mov "$fmriReferenceFile" --reg "$registrationMatrixFile" \
     --bold --init-fsl
-rm "$registrationMatrixFile".{mincost,param,sum,log}
+rm "`basename $registrationMatrixFile .dat`".{dat.mincost,dat.param,dat.sum,log}
 
 # register freesurfer segmentation to reference volume
 mri_label2vol --seg "${freesurferDir}/mri/aseg.mgz" --temp "$fmriReferenceFile" \
