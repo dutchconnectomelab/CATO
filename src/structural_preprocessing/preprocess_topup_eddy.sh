@@ -197,7 +197,7 @@ computeReferenceB0
 # Compute registration matrix from FS to subject space
 bbregister --s "$freesurferDir" --mov "$dwiReferenceFile" --reg "$registrationMatrixFile" \
 --dti --init-fsl
-rm "`basename $registrationMatrixFile .dat`".{dat.mincost,dat.param,dat.sum,log}
+rm -f "`basename $registrationMatrixFile .dat`".{dat.mincost,dat.param,dat.sum,dat.log,log}
 
 # Register freesurfer segmentation to reference volume
 mri_label2vol --seg "${freesurferDir}/mri/aseg.mgz" --temp "$dwiReferenceFile" \
