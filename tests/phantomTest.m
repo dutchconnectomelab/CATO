@@ -14,7 +14,8 @@
                 copyfile(fullfile('tests', 'assets', phantomSub),subjectDir);
 
                 % run CATO
-                configFile = sprintf('tests/assets/%s/misc/cato_structural_config.json',phantomSub);
+                configFile = fullfile(fileparts(mfilename('fullpath')), ...
+                'assets/', phantomSub, '/misc/cato_structural_config.json');
                 structural_pipeline(subjectDir, 'configurationFile', configFile, 'runType', 'overwrite');
 
                 % check results
