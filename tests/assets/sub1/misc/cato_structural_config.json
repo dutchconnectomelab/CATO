@@ -1,0 +1,54 @@
+{
+   "general": {
+      "templates": [
+         "phantomatlas"
+      ],
+      "reconstructionMethods": [
+         "DTI",
+         "GQI",
+         "GQI_DTI"
+      ],
+      "reconstructionSteps": [
+         "reconstruction_diffusion",
+         "reconstruction_fibers",
+         "reconstruction_fiber_properties",
+         "reconstruction_network"
+      ],
+      "ROIsFile": "misc/ROIs_TEMPLATE.txt",
+      "outputDir": "dwi_processed"
+   },
+   "parcellation": {
+      "forceFreesurferOverwrite": false
+   },
+   "reconstruction_diffusion": {
+      "exportNifti": {
+         "exportNifti": true,
+         "measures": [
+            "fractional anisotropy",
+            "axial diffusivity",
+            "radial diffusivity",
+            "mean diffusivity"
+         ]
+      }
+   },
+   "reconstruction_fibers": {
+      "NumberOfSeedsPerVoxel": 8,
+      "minFA": 0.1,
+      "maxAngleDeg": 60,
+      "startRegions": [
+         1
+      ],
+      "forbiddenRegions": [
+         0
+      ],
+      "stopRegions": [
+         10,
+         11,
+         12,
+         13
+      ]
+   },
+   "reconstruction_network": {
+      "minLengthMM": 0
+   }
+}
