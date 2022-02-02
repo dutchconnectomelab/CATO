@@ -4,6 +4,11 @@
             import matlab.unittest.fixtures.TemporaryFolderFixture
             tempFixture = testCase.applyFixture(TemporaryFolderFixture);
             
+            % load FSL & FreeSurfer paths
+            testConfigParams = fileread(fullfile(fileparts(mfilename('fullpath')), 'test_config.json'));
+            testConfigParams = jsondecode(testConfigParams);
+
+
             phantomSubjects = {'sub0', 'sub1', 'sub2'};
             for phantom_i = 1:length(phantomSubjects)
                 phantomSub = phantomSubjects{phantom_i};
@@ -16,7 +21,11 @@
                 % run CATO
                 configFile = fullfile(fileparts(mfilename('fullpath')), ...
                 'assets/', phantomSub, '/misc/cato_structural_config.json');
-                structural_pipeline(subjectDir, 'configurationFile', configFile, 'runType', 'overwrite');
+                structural_pipeline(subjectDir, ...
+                    'configurationFile', configFile, ...
+                    'runType', 'overwrite', ...,
+                    'general.fslRootDir', testConfigParams.fslRootDir, ...
+                    'general.freesurferRootDir', testConfigParams.freesurferRootDir);
 
                 % check results
                 solution = csvread(fullfile(subjectDir, 'misc', 'connectivity.csv'));
