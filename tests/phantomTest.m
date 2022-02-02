@@ -5,7 +5,8 @@
             tempFixture = testCase.applyFixture(TemporaryFolderFixture);
             
             % load FSL & FreeSurfer paths
-            testConfigParams = fileread(fullfile(fileparts(mfilename('fullpath')), 'test_config.json'));
+            testConfigParams = fileread(fullfile( ...
+                fileparts(mfilename('fullpath')), 'test_config.json'));
             testConfigParams = jsondecode(testConfigParams);
 
 
@@ -20,7 +21,7 @@
 
                 % run CATO
                 configFile = fullfile(fileparts(mfilename('fullpath')), ...
-                'assets/', phantomSub, '/misc/cato_structural_config.json');
+                'assets', phantomSub, 'misc/cato_structural_config.json');
                 structural_pipeline(subjectDir, ...
                     'configurationFile', configFile, ...
                     'runType', 'overwrite', ...,
@@ -36,8 +37,10 @@
                 end
                 for method_i = 1:length(methods)
                     method = methods{method_i};
-                    connectivityFile = sprintf('%s_connectivity_%s_phantomatlas.mat', phantomSub, method);
-                    connectivityFile = fullfile(subjectDir, 'dwi_processed', connectivityFile);
+                    connectivityFile = [phantomSub  '_connectivity_' ...
+                        method '_phantomatlas.mat'];
+                    connectivityFile = fullfile(subjectDir, ... 
+                        'dwi_processed', connectivityFile);
                     disp(['Checking results in: ', connectivityFile]);
                     res = load(connectivityFile, 'connectivity');
                     connectivity = res.connectivity;
