@@ -44,7 +44,7 @@ try
     segmentation = load_nifti(segmentationFile);
     maskBrain = segmentation.vol > 0;
 catch
-    error('Cannot load segmentationFile (%s).', dwiProcessedFile);
+    error('Cannot load segmentationFile (%s).', segmentationFile);
 end
 
 assert(isequal(size(maskBrain), dim(1:3)), ...
