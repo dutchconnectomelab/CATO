@@ -37,10 +37,15 @@ voxelSize = single(data.pixdim(2:4));
 trkheader.voxel_size = data.pixdim(2:4);
 trkheader.vox_to_ras = data.vox2ras;
 segmentationVol = data.vol;
-clear data
 
-props = getNiftiProperties(segmentationFile);
-orientation = props.orientation;
+% Extracte orientation from transformation
+props = data.vox2ras(1:3, 1:3);
+[~, I] = find(props); 
+I = (I-1)*2+(props((1:3)' + (I - 1) * 3) > 0) + 1;
+orientationOptions = ['L' 'R', 'P', 'A', 'I', 'S']';
+orientation = orientationOptions(I);
+
+clear data
 
 header = createTrkHeader(...
     'dim', size(segmentationVol), ...
