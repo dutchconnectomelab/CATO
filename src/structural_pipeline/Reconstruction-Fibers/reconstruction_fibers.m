@@ -43,7 +43,7 @@ props = data.vox2ras(1:3, 1:3);
 [~, I] = find(props); 
 I = (I-1)*2+(props((1:3)' + (I - 1) * 3) > 0) + 1;
 orientationOptions = ['L' 'R', 'P', 'A', 'I', 'S']';
-orientation = orientationOptions(I);
+orientation = orientationOptions(I)';
 
 clear data
 
