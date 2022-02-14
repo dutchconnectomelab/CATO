@@ -40,8 +40,8 @@ segmentationVol = data.vol;
 
 % Extracte orientation from transformation
 props = data.vox2ras(1:3, 1:3);
-[~, I] = find(props); 
-I = (I-1)*2+(props((1:3)' + (I - 1) * 3) > 0) + 1;
+[I, ~] = find(props); 
+I = (I-1)*2+ 1 + (props([0 3 6]' + I) > 0);
 orientationOptions = ['L' 'R', 'P', 'A', 'I', 'S']';
 orientation = orientationOptions(I)';
 

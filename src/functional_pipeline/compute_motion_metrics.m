@@ -12,7 +12,7 @@ segmentationFile = configParams.functional_preprocessing.segmentationFile;
 
 motionParams = dlmread(motionParametersFile);
 
-props = load_nifti_fmri(configParams, []);
+[~, props] = load_nifti_fmri(configParams, []);
 ntimepoints = props.dim(5);
 
 metricDescriptions = {'FD'; 'DVARS'};
