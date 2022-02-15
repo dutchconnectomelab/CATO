@@ -10,7 +10,7 @@
             testConfigParams = jsondecode(testConfigParams);
 
 
-            phantomSubjects = {'sub0', 'sub1', 'sub2'};
+            phantomSubjects = testConfigParams.testSubjects;
             for phantom_i = 1:length(phantomSubjects)
                 phantomSub = phantomSubjects{phantom_i};
                 
@@ -26,15 +26,15 @@
                     'configurationFile', configFile, ...
                     'runType', 'overwrite', ...,
                     'general.fslRootDir', testConfigParams.fslRootDir, ...
-                    'general.freesurferRootDir', testConfigParams.freesurferRootDir);
+                    'general.freesurferRootDir', testConfigParams.freesurferRootDir, ...
+                    'reconstruction_fibers.NumberOfSeedsPerVoxel', testConfigParams.NumberOfSeedsPerVoxel);
 
                 % check results
+                configParams = readConfigFile(configFile);
+                methods = configParams.general.reconstructionMethods;
+                
                 solution = csvread(fullfile(subjectDir, 'misc', 'connectivity.csv'));
-                if strcmp(phantomSub, 'sub2')
-                    methods = {'gqi', 'gqi_dti'};
-                else
-                    methods = {'dti', 'gqi', 'gqi_dti'};
-                end
+
                 for method_i = 1:length(methods)
                     method = methods{method_i};
                     connectivityFile = [phantomSub  '_connectivity_' ...
