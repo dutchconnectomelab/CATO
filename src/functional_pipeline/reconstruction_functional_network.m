@@ -22,14 +22,12 @@ for iMethod = 1:length(methods)
     
     % General parameters
     thisMethodDescription = configParams.(methods{iMethod}).methodDescription;
-    fmriProcessedFile = configParams.functional_preprocessing.fmriProcessedFile;
     
     segmentationFile = configParams.functional_preprocessing.segmentationFile;
     ROIsFile = configParams.general.ROIsFile;
     
     parcellationFile = configParams.parcellation.parcellationFile;
     templates = configParams.general.templates;
-    templatesDir = configParams.general.templatesDir;
     lutFile = configParams.parcellation.lutFile;
     
     % Regression parameters
@@ -64,7 +62,7 @@ for iMethod = 1:length(methods)
     segmentation = segmentation.vol;
     brainMask = segmentation(:) > 0;
     
-    signalIntensities = load_nifti_fmri(configParams, brainMask);
+    [signalIntensities, fmriHdr] = load_nifti_fmri(configParams, brainMask);
     nTimePoints = size(signalIntensities, 2);
     
     prevalenceMask = mean(signalIntensities ~= 0, 2) >= 0.9;
@@ -146,8 +144,7 @@ for iMethod = 1:length(methods)
     %% Bandpass filter
     
     % Get repetition time.
-    props = getNiftiProperties(fmriProcessedFile);
-    repetitionTimeMsec = props.res(4);
+    repetitionTimeMsec = fmriHdr.pixdim(5);
     assert(repetitionTimeMsec >= minRepetitionTime, ...
         ['Repetition time (%g msec) reported in fmriProcessedFile', ...
         ' is smaller than the minRepetitionTime (%g msec). ', ...
