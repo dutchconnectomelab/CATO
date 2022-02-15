@@ -52,7 +52,7 @@ for iMethod = 1:length(methods)
     % Connectivity matrix parameters
     connectivityMatrixFile = configParams.(methods{iMethod}).connectivityMatrixFile;
 
-    fprintf('method description: %s\n', thisMethodDescription);
+    fprintf('method description:  %s\n', thisMethodDescription);
     
     %% Prepare rs-fMRI data
     
@@ -84,6 +84,15 @@ for iMethod = 1:length(methods)
     nMotionParameters = size(motionParameters, 1);
     
     regressors = zeros(2*nMotionParameters + nMaskRegressors + GSRFlag, nTimePoints);
+    
+    fprintf(['- regression:          %i regressors '], ...
+        size(regressors, 1));
+    if GSRFlag
+        fprintf('(including the global mean signal)\n');
+    else
+        fprintf('(no global signal regression)\n');
+    end
+        
     
     % Linear trends and first order drifts of ~6 motion parameters.
     regressors(1:nMotionParameters, :) = motionParameters;
@@ -143,28 +152,36 @@ for iMethod = 1:length(methods)
     
     %% Bandpass filter
     
-    % Get repetition time.
-    repetitionTimeMsec = fmriHdr.pixdim(5);
-    assert(repetitionTimeMsec >= minRepetitionTime, ...
-        ['Repetition time (%g msec) reported in fmriProcessedFile', ...
-        ' is smaller than the minRepetitionTime (%g msec). ', ...
-        'Transform repetition time to milliseconds ', ...
-        'or adjust minRepetitionTime-parameter'], repetitionTimeMsec, minRepetitionTime);
-    repetitionTimeSec = repetitionTimeMsec/1000;
-    
-    [filter_b, filter_a] = butter(2, 2*repetitionTimeSec*bandpass_filter.frequencies);
-    
-    % Use for-loop to avoid memory issues from having double. (1sec difference)
-    % filteredSignal = filtfilt(filter_b, filter_a, double(signalIntensities(selectedVoxels, :)));
-    filteredSignal = zeros(size(signalIntensities), 'single');
-    for i = 1:size(signalIntensities, 1)
+    if bandpass_filter.filter
+        
+        % Get repetition time.
+        repetitionTimeMsec = fmriHdr.pixdim(5);
+        assert(repetitionTimeMsec >= minRepetitionTime, ...
+            ['Repetition time (%g msec) reported in fmriProcessedFile', ...
+            ' is smaller than the minRepetitionTime (%g msec). ', ...
+            'Transform repetition time to milliseconds ', ...
+            'or adjust minRepetitionTime-parameter'], repetitionTimeMsec, minRepetitionTime);
+        repetitionTimeSec = repetitionTimeMsec/1000;
+        
+        fprintf('- band-pass filtering: pass signal between %g - %gHz (TR=%ims)\n', ...
+            bandpass_filter.frequencies, repetitionTimeMsec);        
+        
+        [filter_b, filter_a] = butter(2, 2*repetitionTimeSec*bandpass_filter.frequencies);
+        
+        % Use for-loop to avoid memory issues from having double. (1sec difference)
+        % filteredSignal = filtfilt(filter_b, filter_a, double(signalIntensities(selectedVoxels, :)));
+        filteredSignal = zeros(size(signalIntensities), 'single');
+        for i = 1:size(signalIntensities, 1)
             filteredSignal(i,:) = filtfilt(filter_b, filter_a, ...
                 double(signalIntensities(i, :)));
+        end
+        
+        signalIntensities = filteredSignal;
+        
+        clear filteredSignal
+        
     end
     
-    signalIntensities = filteredSignal;
-    
-    clear filteredSignal
     %% Scrub
     % Scrubbing removes frames from the rs-fMRI time-series that
     % display significant motion artifacts {Power, 2012 #50} before
@@ -216,6 +233,10 @@ for iMethod = 1:length(methods)
             end
         end
         outlierFrames = outlierFramesextended;
+        
+        fprintf('- scrubbing:           remove %i frames\n', ...
+            nnz(outlierFrames));
+        
     else
         outlierFrames = zeros(1, nTimePoints);
     end
@@ -234,7 +255,7 @@ for iMethod = 1:length(methods)
     
     for iTemplate = 1:length(templates)
         thisTemplate = templates{iTemplate};
-        fprintf('template: %s\n', thisTemplate);
+        fprintf('- template:            %s\n', thisTemplate);
         
         thisParcellationFile = strrep(parcellationFile, ...
             'TEMPLATE', thisTemplate);
