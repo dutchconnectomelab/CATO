@@ -3,7 +3,7 @@ function compute_motion_metrics(configParams)
 %% Initialization
 status.compute_motion_metrics = 'running';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Compute_motion_metrics started----\n');
+fprintf('---compute_motion_metrics started----\n');
 
 %% Computation motion metrics
 motionParametersFile = configParams.functional_preprocessing.motionParametersFile;
