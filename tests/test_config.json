@@ -1,7 +1,0 @@
-{
-    "fslRootDir": "/Applications/fsl/5.0.10",
-    "freesurferRootDir": "/Applications/freesurfer/6.0.0",
-    "testSubjects": ["sub-orientation"],
-    "NumberOfSeedsPerVoxel":8
-}
-      
