@@ -46,19 +46,19 @@ bvals = gtab.bvals;
 % Check DWI files match with bvals and bvecs.
 % Check DWI files match with eachother
 
-propdwiFile = getNiftiProperties(dwiFile);
-nScans = propdwiFile.dim(4);
+propdwiFile = load_nifti_hdr_fast(dwiFile);
+nScans = propdwiFile.dim(5);
 assert(nScans == length(bvals));
 
 if ~isempty(dwiB0OnlyReversed)
-    propdwiB0OnlyReversed = getNiftiProperties(dwiB0OnlyReversed);
-    assert(isequal(propdwiFile.dim(1:3), propdwiB0OnlyReversed.dim(1:3)));
-    nB0ReversedScans = propdwiB0OnlyReversed.dim(4);
+    propdwiB0OnlyReversed = load_nifti_hdr_fast(dwiB0OnlyReversed);
+    assert(isequal(propdwiFile.dim(2:4), propdwiB0OnlyReversed.dim(2:4)));
+    nB0ReversedScans = propdwiB0OnlyReversed.dim(5);
 end
 
 if ~isempty(dwiFileReversed)
-    propdwiFileReversed = getNiftiProperties(dwiFileReversed);
-    assert(isequal(propdwiFile.dim(1:4), propdwiFileReversed.dim(1:4)));
+    propdwiFileReversed = load_nifti_hdr_fast(dwiFileReversed);
+    assert(isequal(propdwiFile.dim(2:5), propdwiFileReversed.dim(2:5)));
 end
 
 
@@ -103,7 +103,6 @@ if isempty(dwiFileReversed) && ~isempty(dwiB0OnlyReversed)
 
     % create index file
     nB0dwi = nnz(bvals == 0);
-    nB0ReversedScans = propdwiB0OnlyReversed.dim(4);
     
     index1 = (1:nB0ReversedScans)';
     index2 = cumsum(bvals == 0);
@@ -178,7 +177,7 @@ inputArguments = sprintf('--%s="%s" \\\n\t', inputArguments{:});
 %     eddyVersion
 
 % Execute preprocesing script
-fprintf('Execute preprocessing script:\n%s', preprocessingScript);
+fprintf('Execute preprocessing script:\n%s\n', preprocessingScript);
 cmd = ['"', preprocessingScript, '" ', inputArguments(1:end-3)];
 exitCode = system(cmd);
 
