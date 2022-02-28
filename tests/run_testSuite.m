@@ -64,6 +64,8 @@ result = runner.run([suiteSCPreprocessing ...
     suiteSC ...
     suiteFC]);
 
+disp(result);
+
 %% Cleanup
 
 rmdir(testSubjectsDir, 's');
