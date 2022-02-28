@@ -302,9 +302,12 @@ updateStatus(configParams.general.statusFile, status);
 switch status.general
     case 'error'
         MEcause = textwrap({ME.cause{1}.message}, 50);
+        MEfile = [{ME.cause{1}.stack.name}; {ME.cause{1}.stack.line}];
         fprintf('%s\n\n', ME.message)
         fprintf('Details:\n');
-        fprintf('\t%s\n', MEcause{:})
+        fprintf('\t%s\n', MEcause{:});
+        fprintf('\tError in: %s (Line %i)\n', MEfile{:});
+        
     case 'finished'
         timeEnd = datetime('now');
         fprintf('\n-----------------------------------\n');
