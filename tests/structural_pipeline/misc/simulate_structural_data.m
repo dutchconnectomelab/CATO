@@ -1,3 +1,4 @@
+
 function testSubjectStruct = simulate_structural_data(assetsDir)
 
 oldPwd = pwd;
@@ -30,6 +31,7 @@ testSubjectStruct = simulate_structural_default(fullfile(assetsDir, testSubject)
     cpDefault, NT);
 
 cpDefault = parseConfigParams(cpDefault);
+
 
 %% SC preprocessing b0 reversed
 
@@ -165,6 +167,7 @@ simulate_structural_default(subjectDir, ...
 cpNonLin = parseConfigParams(cpNonLin);
 
 testSubjectStruct.(testSubject) = subjectDir;
+
 
 % create non-linearities file (rotate xy-plane)
 nonlinearities = [-1 -1 0; 1 -1 0; 0 0 0];

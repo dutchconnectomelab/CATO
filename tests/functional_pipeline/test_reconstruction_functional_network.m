@@ -52,7 +52,6 @@ classdef test_reconstruction_functional_network < matlab.unittest.TestCase
 
             r = corr(squareform(ref.connectivity)', squareform(obs.connectivity)');
             testCase.verifyGreaterThanOrEqual(r, 0.98, 'FC matrix do not correlate enough.')
-
             
         end
         

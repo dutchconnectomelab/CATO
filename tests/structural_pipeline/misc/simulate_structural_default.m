@@ -29,6 +29,7 @@ cd(testSubjectDir);
 [~,~] = mkdir(cpDefault.general.outputDir);
 [~,~] = mkdir(fileparts(cpDefault.structural_preprocessing.dwiFile));
 
+
 saveConfigFile('config_SC_ref.json', cpDefault);
 cpDefault = parseConfigParams(cpDefault);
 

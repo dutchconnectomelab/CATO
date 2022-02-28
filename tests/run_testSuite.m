@@ -21,7 +21,6 @@ testSubjectsFC = simulate_functional_data(testSubjectsDir);
 testSubjectsSC = simulate_structural_data(testSubjectsDir);
 
 %% Create and run test suite
-
 import matlab.unittest.TestSuite
 
 import matlab.unittest.parameters.Parameter
@@ -33,6 +32,7 @@ import matlab.unittest.constraints.StartsWithSubstring
 import matlab.unittest.plugins.StopOnFailuresPlugin
 import matlab.unittest.TestRunner
 % Option: runner.addPlugin(StopOnFailuresPlugin)
+
 
 paramSC = Parameter.fromData('subjectDir', testSubjectsSC);
 paramFC = Parameter.fromData('subjectDir', testSubjectsFC);
@@ -58,6 +58,7 @@ suiteFC = TestSuite.fromFolder('functional_pipeline', ...
 
 runner = TestRunner.withTextOutput;   
 runner.addPlugin(StopOnFailuresPlugin);
+
 result = runner.run([suiteSCPreprocessing ...
     suiteSCReconstructionDiffusion ...
     suiteSC ...
