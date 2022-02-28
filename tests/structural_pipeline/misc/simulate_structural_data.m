@@ -1,7 +1,7 @@
 function testSubjectStruct = simulate_structural_data(assetsDir)
 
 oldPwd = pwd;
-cleanupPwd = oncleanup(@() cd(oldPwd));
+cleanupPwd = onCleanup(@() cd(oldPwd));
 
 %% Define Nifti template
 NT = load_nifti(fullfile(assetsDir, 'template_nifti.nii.gz'));
@@ -21,6 +21,7 @@ cpDefault.general.subject = testSubject;
 cpDefault.general.outputDir = 'CATO_ref';
 cpDefault.general.templates = 'toyAtlas';
 cpDefault.general.templatesDir = 'templateDir';
+cpDefault.structural_preprocessing.preprocessingScript = 'SUBJECT_structural_preprocessing.sh';
 cpDefault.general.reconstructionMethods =  ...
     {'gqi', 'dti', 'csd', 'gqi_dti', 'csd_dti'};
 cpDefault.reconstruction_diffusion.exportNifti.exportNifti = false;

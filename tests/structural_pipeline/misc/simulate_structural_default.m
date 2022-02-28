@@ -192,6 +192,23 @@ cm = [1 1 1; cm];
 colormap(cm);
 end
 
+%% Create preprocessing script
+
+% Only create the fake preprocessing script if this is the intention.
+if contains(cpDefault.structural_preprocessing.preprocessingScript, ...
+        cpDefault.general.subject)
+    fid = fopen(cpDefault.structural_preprocessing.preprocessingScript, 'w+');
+    fprintf(fid, 'echo "Example preprocessing script"');
+    fclose(fid);
+    system(['chmod 700 ' cpDefault.structural_preprocessing.preprocessingScript]);
+end
+
+index = [ones(1,size(gtab.bvecs,1))];
+dlmwrite(cpDefault.structural_preprocessing.indexFile, index, 'delimiter', ' ');
+
+acqp = [1 0 0 0.085; -1 0 0 0.085];
+dlmwrite(cpDefault.structural_preprocessing.acqpFile, acqp, 'delimiter', ' ');
+
 %% Create bvals and bvecs file
 dlmwrite(cpDefault.structural_preprocessing.rawBvalsFile, ...
     gtab.bvals);
