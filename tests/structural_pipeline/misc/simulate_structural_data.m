@@ -1,8 +1,7 @@
-<<<<<<< Updated upstream
-function testSubjectStruct = create_simulated_data(assetsDir)
-=======
 function testSubjectStruct = simulate_structural_data(assetsDir)
->>>>>>> Stashed changes
+
+oldPwd = pwd;
+cleanupPwd = oncleanup(@() cd(oldPwd));
 
 %% Define Nifti template
 NT = load_nifti(fullfile(assetsDir, 'template_nifti.nii.gz'));
@@ -30,12 +29,6 @@ testSubjectStruct = simulate_structural_default(fullfile(assetsDir, testSubject)
     cpDefault, NT);
 
 cpDefault = parseConfigParams(cpDefault);
-
-<<<<<<< Updated upstream
-%% SC_nonlinearities
-
-testSubject = 'SC_nonlinearities';
-=======
 
 %% SC preprocessing b0 reversed
 
@@ -149,7 +142,6 @@ testSubject = 'SC_nonlinearities';
 subjectDir = fullfile(assetsDir, testSubject);
 [~,~] = mkdir(subjectDir);
 cd(subjectDir);
->>>>>>> Stashed changes
 
 cpNonLin = readConfigFile('config_structural_default.json');
 cpNonLin.general.subject = testSubject;
@@ -164,10 +156,7 @@ cpNonLin.general.templates = 'toyAtlas';
 cpNonLin.general.templatesDir = 'templateDir';
 saveConfigFile('config_SC_ref.json', cpNonLin);
 
-<<<<<<< Updated upstream
 subjectDir = fullfile(assetsDir, testSubject);
-=======
->>>>>>> Stashed changes
 
 simulate_structural_default(subjectDir, ...
     cpNonLin, NT);
@@ -176,10 +165,6 @@ cpNonLin = parseConfigParams(cpNonLin);
 
 testSubjectStruct.(testSubject) = subjectDir;
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 % create non-linearities file (rotate xy-plane)
 nonlinearities = [-1 -1 0; 1 -1 0; 0 0 0];
 nonlinearities = nonlinearities(:);

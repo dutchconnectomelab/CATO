@@ -27,10 +27,7 @@ cleanupPath = onCleanup(@() cd(oldPath));
 cd(testSubjectDir);
 
 [~,~] = mkdir(cpDefault.general.outputDir);
-<<<<<<< Updated upstream
-=======
 [~,~] = mkdir(fileparts(cpDefault.structural_preprocessing.dwiFile));
->>>>>>> Stashed changes
 
 saveConfigFile('config_SC_ref.json', cpDefault);
 cpDefault = parseConfigParams(cpDefault);
@@ -142,10 +139,8 @@ end
 %% Create DWI
 
 NT.vol = S;
-<<<<<<< Updated upstream
-=======
+
 save_nifti(NT, cpDefault.structural_preprocessing.dwiFile);
->>>>>>> Stashed changes
 save_nifti(NT, cpDefault.structural_preprocessing.dwiProcessedFile);
 
 NT.vol = NT.vol(:, :, :, 1);
@@ -198,14 +193,11 @@ colormap(cm);
 end
 
 %% Create bvals and bvecs file
-<<<<<<< Updated upstream
-=======
 dlmwrite(cpDefault.structural_preprocessing.rawBvalsFile, ...
     gtab.bvals);
 dlmwrite(cpDefault.structural_preprocessing.rawBvecsFile, ...
     gtab.bvecs);
 
->>>>>>> Stashed changes
 dlmwrite(cpDefault.structural_preprocessing.processedBvalsFile, ...
     gtab.bvals);
 dlmwrite(cpDefault.structural_preprocessing.processedBvecsFile, ...
