@@ -25,11 +25,19 @@ repetitionTime = 750;
 configParams = readConfigFile('config_functional_default.json');
 configParams.general.subject = testSubject;
 configParams.general.outputDir = 'CATO_ref';
-configParams.general.templates = {'toyAtlas1', 'toyAtlas2'};
+configParams.general.templates = {'toyAtlas1'};
 configParams.general.templatesDir = 'templateDir';
+
+configParams.reconstruction_functional_network2.methodDescription = 'default';
 configParams.reconstruction_functional_network.bandpass_filter.filter = false;
 configParams.reconstruction_functional_network.scrubbing.scrubbing = false;
 configParams.reconstruction_functional_network.regression.regressionMask = 999;
+
+configParams.reconstruction_functional_network2.methodDescription = 'default_partial';
+configParams.reconstruction_functional_network2.bandpass_filter.filter = false;
+configParams.reconstruction_functional_network2.scrubbing.scrubbing = false;
+configParams.reconstruction_functional_network2.regression.regressionMask = 999;
+configParams.reconstruction_functional_network2.reconstructionMethod = 'partialcorr';
 saveConfigFile('config_FC_ref.json', configParams);
 
 configParams = parseConfigParams(configParams);
@@ -57,6 +65,9 @@ refCov = refCov' * refCov;
 
 S = mvnrnd(10 * ones(nRegions,1), refCov,nScans);
 
+data_partial.connectivity = partialcorr(S);
+data_partial.connectivity(eye(nRegions)>0) = 0;
+
 S = permute(S, [2 3 4 1]);
 S = reshape(S, 4, 4, 1, []);
 S = repelem(S, 2,2,3);
@@ -64,20 +75,21 @@ S = repelem(S, 2,2,3);
 % Create one voxel with noise to regress out in regression step.
 S(1,1,1,:) = 10+randn(nScans,1);
 
-
 NT.vol = S;
 save_nifti(NT, configParams.functional_preprocessing.fmriProcessedFile);
 
 data.connectivity = refCov;
 data.connectivity(eye(nRegions)>0) = 0;
+
 save(strrep(strrep(configParams.reconstruction_functional_network.connectivityMatrixFile, ...
-    'METHOD', 'scrubbed_0.01-0.1'), ...
+    'METHOD', 'default'), ...
     'TEMPLATE', 'toyAtlas1'), ...
     '-struct', 'data');
+
 save(strrep(strrep(configParams.reconstruction_functional_network.connectivityMatrixFile, ...
-    'METHOD', 'scrubbed_0.01-0.1'), ...
-    'TEMPLATE', 'toyAtlas2'), ...
-    '-struct', 'data');
+    'METHOD', 'default_partial'), ...
+    'TEMPLATE', 'toyAtlas1'), ...
+    '-struct', 'data_partial');
 
 %% Create segmentationFile
 

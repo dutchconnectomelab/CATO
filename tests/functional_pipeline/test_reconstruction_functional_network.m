@@ -40,18 +40,23 @@ classdef test_reconstruction_functional_network < matlab.unittest.TestCase
             cf = functional_pipeline(pwd, ...
                 'configurationFile', fullfile(subjectDir, 'config_FC_ref.json'), ...
                 'reconstructionSteps', testCase.reconstructionSteps, ...
-                'general.outputDir', 'fMRI_processed_test');
+                'general.outputDir', 'fMRI_processed_test', ...
+                'runType', 'overwrite');
             
-            connectivityMatrixFile = strrep(strrep( ...
-                cf.reconstruction_functional_network.connectivityMatrixFile, ...
-                'METHOD', 'scrubbed_0.01-0.1'), ...
-                'TEMPLATE', 'toyAtlas1');
-            
-            obs = load(connectivityMatrixFile);
-            ref = load(strrep(connectivityMatrixFile, 'fMRI_processed_test', 'CATO_ref'));
-
-            r = corr(squareform(ref.connectivity)', squareform(obs.connectivity)');
-            testCase.verifyGreaterThanOrEqual(r, 0.98, 'FC matrix do not correlate enough.')
+            for reconstructionMethods = {'default', 'default_partial'}
+                
+                connectivityMatrixFile = strrep(strrep( ...
+                    cf.reconstruction_functional_network.connectivityMatrixFile, ...
+                    'METHOD', reconstructionMethods{1}), ...
+                    'TEMPLATE', 'toyAtlas1');
+                
+                obs = load(connectivityMatrixFile);
+                ref = load(strrep(connectivityMatrixFile, 'fMRI_processed_test', 'CATO_ref'));
+                
+                r = corr(squareform(ref.connectivity)', squareform(obs.connectivity)');
+                testCase.verifyGreaterThanOrEqual(r, 0.98, 'FC matrix do not correlate enough.')
+                
+            end
             
         end
         

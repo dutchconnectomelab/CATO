@@ -50,6 +50,7 @@ for iMethod = 1:length(methods)
     timeSeriesFile = configParams.(methods{iMethod}).timeSeriesFile;
     
     % Connectivity matrix parameters
+    reconstructionMethod = configParams.(methods{iMethod}).reconstructionMethod;
     connectivityMatrixFile = configParams.(methods{iMethod}).connectivityMatrixFile;
 
     fprintf('method description:  %s\n', thisMethodDescription);
@@ -295,7 +296,8 @@ for iMethod = 1:length(methods)
         end
         
         % Calculate correlation data
-        [connectivity, pValues] = corr(averageTimeSeries');
+        reconstructionMethodFunc = str2func(reconstructionMethod);
+        [connectivity, pValues] = reconstructionMethodFunc(averageTimeSeries');
         connectivity = connectivity .* ~eye(length(connectivity));
         pValues = pValues .* ~eye(length(connectivity)); %#ok
                 
