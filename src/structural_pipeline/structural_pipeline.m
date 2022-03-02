@@ -291,6 +291,7 @@ for i = 1:size(reconStepNames, 1)
         MEStep = MException('CATO:structural_pipeline', ...
             'Error in %s step.', reconStepNames{i});
         ME = addCause(MEStep, ME);
+        status.(reconStepNames{i}) = 'error';
         status.general = 'error';
         break
     end
@@ -307,7 +308,6 @@ switch status.general
         fprintf('Details:\n');
         fprintf('\t%s\n', MEcause{:});
         fprintf('\tError in: %s (Line %i)\n', MEfile{:});
-        
     case 'finished'
         timeEnd = datetime('now');
         fprintf('\n-----------------------------------\n');
