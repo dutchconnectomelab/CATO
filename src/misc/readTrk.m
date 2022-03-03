@@ -34,11 +34,6 @@ while true
         break;
     end
 
-    % We need at least 3 steps (1 WM voxel).
-    if points < 5 
-        continue
-    end
-
     fibers{iFiber} = thisFiber;
     
 end
