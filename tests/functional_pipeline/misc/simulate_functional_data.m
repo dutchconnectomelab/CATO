@@ -28,7 +28,7 @@ configParams.general.outputDir = 'CATO_ref';
 configParams.general.templates = {'toyAtlas1'};
 configParams.general.templatesDir = 'templateDir';
 
-configParams.reconstruction_functional_network2.methodDescription = 'default';
+configParams.reconstruction_functional_network.methodDescription = 'default';
 configParams.reconstruction_functional_network.bandpass_filter.filter = false;
 configParams.reconstruction_functional_network.scrubbing.scrubbing = false;
 configParams.reconstruction_functional_network.regression.regressionMask = 999;
@@ -38,6 +38,7 @@ configParams.reconstruction_functional_network2.bandpass_filter.filter = false;
 configParams.reconstruction_functional_network2.scrubbing.scrubbing = false;
 configParams.reconstruction_functional_network2.regression.regressionMask = 999;
 configParams.reconstruction_functional_network2.reconstructionMethod = 'partialcorr';
+
 saveConfigFile('config_FC_ref.json', configParams);
 
 configParams = parseConfigParams(configParams);
