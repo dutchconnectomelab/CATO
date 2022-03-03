@@ -52,6 +52,7 @@
 	},
 	"reconstruction_functional_network":{
 		"methodDescription": "scrubbed_0.01-0.1",
+		"reconstructionMethod": "corr",
 		"connectivityMatrixFile": "OUTPUTDIR/SUBJECT_connectivity_METHOD_TEMPLATE.mat",
 		"timeSeriesFile": "OUTPUTDIR/SUBJECT_time_series_METHOD_TEMPLATE.mat",
 		"minRepetitionTime": 100,
