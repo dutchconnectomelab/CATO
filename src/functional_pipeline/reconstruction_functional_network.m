@@ -296,11 +296,12 @@ for iMethod = 1:length(methods)
         end
         
         % Calculate correlation data
+        fprintf('- method:              %s\n', reconstructionMethod);
         reconstructionMethodFunc = str2func(reconstructionMethod);
         [connectivity, pValues] = reconstructionMethodFunc(averageTimeSeries');
         connectivity = connectivity .* ~eye(length(connectivity));
         pValues = pValues .* ~eye(length(connectivity)); %#ok
-                
+        
         save(thisConnectivityMatrixFile, ...
             'motionMetrics', 'numberOfScrubbedVolumes', ...
             'metricDescriptions', 'ROIs', ...
