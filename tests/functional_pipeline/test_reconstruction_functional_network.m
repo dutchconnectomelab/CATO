@@ -43,8 +43,8 @@ classdef test_reconstruction_functional_network < matlab.unittest.TestCase
                 'general.outputDir', 'fMRI_processed_test', ...
                 'runType', 'overwrite');
             
-            for reconstructionMethods = {'default', 'default_partial'}
-                
+            for reconstructionMethods = {'default_partial', 'default'}
+
                 connectivityMatrixFile = strrep(strrep( ...
                     cf.reconstruction_functional_network.connectivityMatrixFile, ...
                     'METHOD', reconstructionMethods{1}), ...
@@ -54,7 +54,8 @@ classdef test_reconstruction_functional_network < matlab.unittest.TestCase
                 ref = load(strrep(connectivityMatrixFile, 'fMRI_processed_test', 'CATO_ref'));
                 
                 r = corr(squareform(ref.connectivity)', squareform(obs.connectivity)');
-                testCase.verifyGreaterThanOrEqual(r, 0.98, 'FC matrix do not correlate enough.')
+                testCase.verifyGreaterThanOrEqual(r, 0.98, ...
+                    sprintf('%s FC matrix do not correlate enough.', reconstructionMethods{1}));
                 
             end
             

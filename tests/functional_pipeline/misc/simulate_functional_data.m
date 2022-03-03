@@ -17,7 +17,7 @@ cd(fullfile(assetsDir, testSubject));
 % Simulated signal has dimensions:
 % sqrt(nRegions) x sqrt(nRegions) x 3 x nScans
 nRegions = 16;
-nScans = 2000;
+nScans = 500;
 repetitionTime = 750;
 
 
@@ -33,11 +33,13 @@ configParams.reconstruction_functional_network.bandpass_filter.filter = false;
 configParams.reconstruction_functional_network.scrubbing.scrubbing = false;
 configParams.reconstruction_functional_network.regression.regressionMask = 999;
 
-configParams.reconstruction_functional_network2.methodDescription = 'default_partial';
-configParams.reconstruction_functional_network2.bandpass_filter.filter = false;
-configParams.reconstruction_functional_network2.scrubbing.scrubbing = false;
-configParams.reconstruction_functional_network2.regression.regressionMask = 999;
-configParams.reconstruction_functional_network2.reconstructionMethod = 'partialcorr';
+configParams.reconstruction_functional_network_1 = ...
+    configParams.reconstruction_functional_network;
+configParams.reconstruction_functional_network_1.methodDescription = 'default_partial';
+configParams.reconstruction_functional_network_1.bandpass_filter.filter = false;
+configParams.reconstruction_functional_network_1.scrubbing.scrubbing = false;
+configParams.reconstruction_functional_network_1.regression.regressionMask = 999;
+configParams.reconstruction_functional_network_1.reconstructionMethod = 'partialcorr';
 
 saveConfigFile('config_FC_ref.json', configParams);
 
@@ -61,25 +63,41 @@ NT.pixdim = [1 1 1 1 repetitionTime 1 1 1]';
 % Make covariance matrix and model rs-fMRI data as a multivariate normal
 % distribution.
 refCov = rand(nRegions,nRegions);
+refCov(end+1:end+7, end+1:end+7) = eye(7);
 refCov = normalize(refCov, 'norm');
 refCov = refCov' * refCov;
 
-S = mvnrnd(10 * ones(nRegions,1), refCov,nScans);
+S = 1000*mvnrnd(10 * ones(nRegions+7,1), refCov,nScans);
+
+noise = S(:,nRegions+1);
+rotationParams = S(:,nRegions+2:nRegions+4);
+translationParams = S(:,nRegions+5:nRegions+7);
+S = S(:, 1:nRegions);
+
+% partial correlations:
+% Sp = zeros(size(S));
+% X = [rotationParams translationParams];
+% X = [X [zeros(1,size(X,2)); diff(X', 1, 2)'] noise];
+% X = bsxfun(@rdivide, X', mean(abs(X'), 2))';
+% for i = 1:nRegions
+%     SpMdl = fitlm(X, S(:,i), 'intercept', false);
+%     Sp(:,i) = SpMdl.Residuals.Raw - mean(SpMdl.Residuals.Raw);
+% end
 
 data_partial.connectivity = partialcorr(S);
 data_partial.connectivity(eye(nRegions)>0) = 0;
 
 S = permute(S, [2 3 4 1]);
-S = reshape(S, 4, 4, 1, []);
+S = reshape(S, sqrt(nRegions), sqrt(nRegions), 1, []);
 S = repelem(S, 2,2,3);
 
 % Create one voxel with noise to regress out in regression step.
-S(1,1,1,:) = 10+randn(nScans,1);
+S(1,1,1,:) = noise;
 
 NT.vol = S;
 save_nifti(NT, configParams.functional_preprocessing.fmriProcessedFile);
 
-data.connectivity = refCov;
+data.connectivity = refCov(1:nRegions, 1:nRegions);
 data.connectivity(eye(nRegions)>0) = 0;
 
 save(strrep(strrep(configParams.reconstruction_functional_network.connectivityMatrixFile, ...
@@ -87,7 +105,7 @@ save(strrep(strrep(configParams.reconstruction_functional_network.connectivityMa
     'TEMPLATE', 'toyAtlas1'), ...
     '-struct', 'data');
 
-save(strrep(strrep(configParams.reconstruction_functional_network.connectivityMatrixFile, ...
+save(strrep(strrep(configParams.reconstruction_functional_network_1.connectivityMatrixFile, ...
     'METHOD', 'default_partial'), ...
     'TEMPLATE', 'toyAtlas1'), ...
     '-struct', 'data_partial');
@@ -109,8 +127,6 @@ save_nifti(NT, strrep(configParams.parcellation.parcellationFile, ...
 
 %% Create motionParametersFile
 
-rotationParams = randn(nScans, 3);
-translationParams = randn(nScans, 3);
 dlmwrite(configParams.functional_preprocessing.motionParametersFile, ...
     [rotationParams translationParams]);
 
