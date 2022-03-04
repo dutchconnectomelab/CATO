@@ -1,6 +1,6 @@
 function [fiberProperties, propertyDescriptions] = ...
     getFiberPropertiesFromFile(fiberFile, ROIlist, parcellation, ...
-    diffusionMeasures, weightDescriptions, includeGMVoxelsFlag)
+    diffusionMeasures, weightDescriptions, maxMemory, includeGMVoxelsFlag)
 % GETFIBERPROPERTIESFROMFILE    Calculate fiber properties of fiber file.
 %
 %   INPUT VARIABLES
@@ -33,7 +33,7 @@ function [fiberProperties, propertyDescriptions] = ...
 %   List of properties in fiberProperties variable.
 
 %% Initialization
-if nargin < 5
+if nargin < 6
     includeGMVoxelsFlag = false;
 end
 
@@ -45,7 +45,7 @@ indexMatrix = zeros(nregions);
 indexMatrix(tril(ones(nregions), -1) == 1) = 1:nregions*(nregions-1)/2;
 indexMatrix = max(indexMatrix, indexMatrix');
 
-maxEntries = 4e6; % based on an arbitrary limit, st. final matrix is 1.5GB
+maxEntries = floor(1e9 * maxMemory / (4*(7+size(diffusionMeasures, 2))));
 fiberIndex1 = single(zeros(maxEntries, 1));
 fiberIndex2 = single(zeros(maxEntries, 1));
 fiberMeasures = single(zeros(size(diffusionMeasures, 2), maxEntries));
@@ -184,9 +184,19 @@ while true
             end
             
             if counter > maxEntries
-                error(['Number of reconstructed fiber segments exceeds ', ...
-                    'maximum (maxEntries = %.g).'], ...
+                warning(['Number of reconstructed fiber segments exceeds ', ...
+                    'maximum (maxEntries = %.g). CATO will use more than expected memory.'], ...
                     maxEntries);
+                
+                fiberIndex1 = [fiberIndex1; single(zeros(size(fiberIndex1)))];
+                fiberIndex2 = [fiberIndex2; single(zeros(size(fiberIndex1)))];
+                fiberMeasures = [fiberMeasures; single(zeros(size(fiberMeasures)))];
+                fiberLength = [fiberLength; single(zeros(size(fiberLength)))];
+                fiberNumber = [fiberNumber; single(zeros(size(fiberNumber)))];
+                fiberMaxAngle = [fiberMaxAngle; single(zeros(size(fiberMaxAngle)))];
+                connectionNumber = [connectionNumber; single(zeros(size(connectionNumber)))];
+                maxEntries = 2*maxEntries;
+
             end
             
             % Prepare and save fiber segment measures.

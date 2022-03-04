@@ -114,8 +114,10 @@ seedLocations = ismember(segmentationVol, startRegions) & (mask == 1);
 seedLocations = single([seedLocationI seedLocationJ seedLocationK]);
 
 % Distribute seed locations evenly in voxels
-m = nSeedsPerVoxel^(1/3);
-assert(m == round(m));
+m = round(nSeedsPerVoxel^(1/3));
+assert(m^3 == nSeedsPerVoxel, ...
+    ['Number of seeds per voxel (%g)', ...
+    ' must be a qubic number (e.g. 1, 8 or 27).'], nSeedsPerVoxel);
 [deltaI, deltaJ, deltaK] = meshgrid(1/(2*m):1/m:1-1/(2*m));
 deltaXYZ = [deltaI(:) deltaJ(:) deltaK(:)]; % in voxel space
 
