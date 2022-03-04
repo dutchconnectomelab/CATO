@@ -3,31 +3,39 @@ function [thresCondNum, thresVarProjScores] = thresholdAssistant(gtab)
 %
 %   INPUT VARIABLES
 %   gtab:
-%   numberOfScansx3 matrix with the applied diffusion gradients as rows.
-%   The norm of a gradient vector should be equal to the associated b-value.
+%   Structure with two fields. gtab.bvecs is an array with the applied
+%   diffusion gradients as rows. gtab.bvals is a vector with the b-values
+%   associated with each gradient.
 %
 %   OUTPUT VARIABLES
 %   thresCondNum:
 %   Suggested threshold for the condition number of the B-matrix.
 %
 %   thresVarProjScores:
-%   Suggested threshold on the variation in the average projection scores.
+%   Suggested threshold for the variation in the average projection scores.
 %
 %   NOTES
-%   The condition number and variation in average projection scores
-%   thresholds are specific for each gradient acquisition scheme. This
-%   function estimates both thresholds using a bootstrapped sample of
-%   gradient schemes obtained by randomly removing gradient directions from
-%   the original scheme. Following experience from practice, as described
-%   in de Reus (2015), thresholds where chosen from the distribution such
-%   that:
-%       - The removal of 5% of the gradients was allowed for 75% of the
-%       samples.
-%       - And the removal of 50% of the gradients was allowed in 25% of the
-%       samples.
-%   For each threshold these two points were obtained across all
-%   permutations and the final thresholds were obtained by averaging the
-%   two points.
+%   To ensure that enough information is preserved for reliable tensor
+%   estimation, the iRESTORE algorithm (Chang, 2012) checks that the
+%   B-matrix remains well conditioned and directionally balanced. The
+%   B-matrix is considered well-conditioned if the condition number is lower
+%   than thresCondNum and directionally balanced if the variation in average
+%   projection scores is lower than thresVarProjScores. The condition number
+%   and variation in average projection scores thresholds are specific for
+%   each gradient acquisition scheme.
+%
+%   This function estimates each threshold as the average of two threshold
+%   estimates (de Reus, 2015). Each threshold estimate is obtained from
+%   bootstrapping a sample of gradient schemes in which random gradient
+%   directions are removed from the original scheme (1,000 permutations).
+%   
+%      - The first threshold estimate is the value such that the removal of
+%        5% of the gradients is accepted in 75% of the samples.
+%      - The second threshold estimate is the value such that the removal
+%        of 50% of the gradients is  accepted in 25% of the samples.
+%
+%   The suggested threshold for the condition number and variation in
+%   average projection scores is then the average of these two estimates.
 
 %   Based on:
 %   de Reus, M. A. (2015). An eccentric perspective on brain networks,
@@ -38,6 +46,10 @@ function [thresCondNum, thresVarProjScores] = thresholdAssistant(gtab)
 %   Medicine 68(5): 1654-1663.
 
 %% Initialization
+
+NREMOVED = [5 50];
+PERCENTAGE_ALLOWED = [75 25];
+NPERM = 1000;
 
 % Define B and G.
 weightedScans = gtab.bvals > 0;
@@ -59,41 +71,34 @@ G = G(weightedScans, :);
 %% Bootstrap samples with randomly removed directions
 
 nDir = nnz(weightedScans);
-nPerm = 100;
+nDirRemoved = nDir * NREMOVED / 100;
+nDirRemoved = max(ceil(nDirRemoved), 1);
 
-nDirRemoved = nDir * [5 50] / 100;
-nDirRemoved = max(round(nDirRemoved), 1);
-nRemoved = length(nDirRemoved);
+nPoints = length(NREMOVED);
+thresCondNum = nan(nPoints, 1);
+thresVarProjScores = nan(nPoints, 1);
 
-thresPercentages = [75 25];
-
-condNum = nan(nPerm, nRemoved);
-varProjScores = nan(nPerm, nRemoved);
-for iPerm = 1:nPerm
-    for iRemoved = 1:nRemoved
-        
+for iRemoved = 1:nPoints
+    
+    condNum = nan(NPERM, 1);
+    varProjScores = nan(NPERM, 1);
+    
+    for iPerm = 1:NPERM
         indxDirRemain = randperm(nDir, nDir-nDirRemoved(iRemoved));
         
-        condNum(iPerm, iRemoved) = cond(B(indxDirRemain, 1:6));
+        condNum(iPerm) = cond(B(indxDirRemain, 1:6));
         
         projScores = mean(abs(G * G(indxDirRemain, :)'), 2);
-        varProjScores(iPerm, iRemoved) = std(projScores) / mean(projScores);
-        
+        varProjScores(iPerm) = std(projScores) / mean(projScores); 
     end
-end
-
-%% Select threshold based on random sample
-thresCondNum = nan(nRemoved, 1);
-thresVarProjScores = nan(nRemoved, 1);
-for iR = 1:nRemoved
     
-    thisThreshold = round(nPerm * thresPercentages(iR) / 100);
+    thisThreshold = round(NPERM * PERCENTAGE_ALLOWED(iRemoved) / 100);
     
-    condNum(:, iR) = sort(condNum(:, iR), 'descend');
-    thresCondNum(iR) = condNum(thisThreshold, iR);
+    condNum = sort(condNum, 'ascend');
+    thresCondNum(iRemoved) = condNum(thisThreshold);
     
-    varProjScores(:, iR) = sort(varProjScores(:, iR), 'descend');
-    thresVarProjScores(iR) = varProjScores(thisThreshold, iR);
+    varProjScores = sort(varProjScores, 'ascend');
+    thresVarProjScores(iRemoved) = varProjScores(thisThreshold);    
     
 end
 
