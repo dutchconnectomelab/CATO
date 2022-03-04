@@ -39,6 +39,10 @@ function [thresCondNum, thresVarProjScores] = thresholdAssistant(gtab)
 
 %% Initialization
 
+NREMOVED = [5 50];
+PERCENTAGE_ALLOWED = [75 25];
+NPERM = 1000;
+
 % Define B and G.
 weightedScans = gtab.bvals > 0;
 
@@ -59,41 +63,34 @@ G = G(weightedScans, :);
 %% Bootstrap samples with randomly removed directions
 
 nDir = nnz(weightedScans);
-nPerm = 100;
+nDirRemoved = nDir * NREMOVED / 100;
+nDirRemoved = max(ceil(nDirRemoved), 1);
 
-nDirRemoved = nDir * [5 50] / 100;
-nDirRemoved = max(round(nDirRemoved), 1);
-nRemoved = length(nDirRemoved);
+nPoints = length(NREMOVED);
+thresCondNum = nan(nPoints, 1);
+thresVarProjScores = nan(nPoints, 1);
 
-thresPercentages = [75 25];
-
-condNum = nan(nPerm, nRemoved);
-varProjScores = nan(nPerm, nRemoved);
-for iPerm = 1:nPerm
-    for iRemoved = 1:nRemoved
-        
+for iRemoved = 1:nPoints
+    
+    condNum = nan(NPERM, 1);
+    varProjScores = nan(NPERM, 1);
+    
+    for iPerm = 1:NPERM
         indxDirRemain = randperm(nDir, nDir-nDirRemoved(iRemoved));
         
-        condNum(iPerm, iRemoved) = cond(B(indxDirRemain, 1:6));
+        condNum(iPerm) = cond(B(indxDirRemain, 1:6));
         
         projScores = mean(abs(G * G(indxDirRemain, :)'), 2);
-        varProjScores(iPerm, iRemoved) = std(projScores) / mean(projScores);
-        
+        varProjScores(iPerm) = std(projScores) / mean(projScores); 
     end
-end
-
-%% Select threshold based on random sample
-thresCondNum = nan(nRemoved, 1);
-thresVarProjScores = nan(nRemoved, 1);
-for iR = 1:nRemoved
     
-    thisThreshold = round(nPerm * thresPercentages(iR) / 100);
+    thisThreshold = round(NPERM * PERCENTAGE_ALLOWED(iRemoved) / 100);
     
-    condNum(:, iR) = sort(condNum(:, iR), 'descend');
-    thresCondNum(iR) = condNum(thisThreshold, iR);
+    condNum = sort(condNum, 'ascend');
+    thresCondNum(iRemoved) = condNum(thisThreshold);
     
-    varProjScores(:, iR) = sort(varProjScores(:, iR), 'descend');
-    thresVarProjScores(iR) = varProjScores(thisThreshold, iR);
+    varProjScores = sort(varProjScores, 'ascend');
+    thresVarProjScores(iRemoved) = varProjScores(thisThreshold);    
     
 end
 
