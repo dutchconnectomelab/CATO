@@ -3,15 +3,16 @@ function [thresCondNum, thresVarProjScores] = thresholdAssistant(gtab)
 %
 %   INPUT VARIABLES
 %   gtab:
-%   numberOfScansx3 matrix with the applied diffusion gradients as rows.
-%   The norm of a gradient vector should be equal to the associated b-value.
+%   Structure with two fields. gtab.bvecs is an array with the applied
+%   diffusion gradients as rows. gtab.bvals is a vector with the b-values
+%   associated with each gradient.
 %
 %   OUTPUT VARIABLES
 %   thresCondNum:
 %   Suggested threshold for the condition number of the B-matrix.
 %
 %   thresVarProjScores:
-%   Suggested threshold on the variation in the average projection scores.
+%   Suggested threshold for the variation in the average projection scores.
 %
 %   NOTES
 %   To ensure that enough information is preserved for reliable tensor
