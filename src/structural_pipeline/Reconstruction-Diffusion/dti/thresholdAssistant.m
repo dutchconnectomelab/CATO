@@ -14,20 +14,27 @@ function [thresCondNum, thresVarProjScores] = thresholdAssistant(gtab)
 %   Suggested threshold on the variation in the average projection scores.
 %
 %   NOTES
-%   The condition number and variation in average projection scores
-%   thresholds are specific for each gradient acquisition scheme. This
-%   function estimates both thresholds using a bootstrapped sample of
-%   gradient schemes obtained by randomly removing gradient directions from
-%   the original scheme. Following experience from practice, as described
-%   in de Reus (2015), thresholds where chosen from the distribution such
-%   that:
-%       - The removal of 5% of the gradients was allowed for 75% of the
-%       samples.
-%       - And the removal of 50% of the gradients was allowed in 25% of the
-%       samples.
-%   For each threshold these two points were obtained across all
-%   permutations and the final thresholds were obtained by averaging the
-%   two points.
+%   To ensure that enough information is preserved for reliable tensor
+%   estimation, the iRESTORE algorithm (Chang, 2012) checks that the
+%   B-matrix remains well conditioned and directionally balanced. The
+%   B-matrix is considered well-conditioned if the condition number is lower
+%   than thresCondNum and directionally balanced if the variation in average
+%   projection scores is lower than thresVarProjScores. The condition number
+%   and variation in average projection scores thresholds are specific for
+%   each gradient acquisition scheme.
+%
+%   This function estimates each threshold as the average of two threshold
+%   estimates (de Reus, 2015). Each threshold estimate is obtained from
+%   bootstrapping a sample of gradient schemes in which random gradient
+%   directions are removed from the original scheme (1,000 permutations).
+%   
+%      - The first threshold estimate is the value such that the removal of
+%        5% of the gradients is accepted in 75% of the samples.
+%      - The second threshold estimate is the value such that the removal
+%        of 50% of the gradients is  accepted in 25% of the samples.
+%
+%   The suggested threshold for the condition number and variation in
+%   average projection scores is then the average of these two estimates.
 
 %   Based on:
 %   de Reus, M. A. (2015). An eccentric perspective on brain networks,
