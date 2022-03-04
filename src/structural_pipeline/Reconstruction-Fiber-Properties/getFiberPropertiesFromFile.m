@@ -143,12 +143,11 @@ while true
             PtouchedIndx = fiberPointsROIsInd(PIndx(I));
             QtouchedIndx = fiberPointsROIsInd(QIndx(J));
             
-            if PtouchedIndx > QtouchedIndx
-                segmentIndx = QtouchedIndx+1:PtouchedIndx-1;
-            elseif QtouchedIndx > PtouchedIndx
-                segmentIndx = PtouchedIndx+1:QtouchedIndx-1;
-            end
-            
+            % Select segments such that segments go from P -> Q
+            segmentIndx = linspace(PtouchedIndx, QtouchedIndx, ...
+                abs(PtouchedIndx - QtouchedIndx) + 1);
+            segmentIndx = segmentIndx(2:end-1);
+
             % Compatibility option: exclude GM-GM fibers with no white
             % matter voxels.
             if ~includeGMVoxelsFlag
