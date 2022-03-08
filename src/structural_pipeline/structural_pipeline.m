@@ -52,7 +52,7 @@ if verLessThan('matlab','9.3')
         'older version might result in unexpected errors.']);
 end
 
-% CATO uses statistics and signal toolbox.
+% The structural pipeline uses the Statistics and Machine Learning Toolbox
 license('checkout','statistics_toolbox');
 toolboxInstalled = ver;
 assert(contains([toolboxInstalled.Name], ...
