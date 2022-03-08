@@ -54,13 +54,11 @@ end
 
 % CATO uses statistics and signal toolbox.
 license('checkout','statistics_toolbox');
-license('checkout','signal_toolbox');
-assert(contains(struct2array(ver), ...
+toolboxInstalled = ver;
+assert(contains([toolboxInstalled.Name], ...
     'Statistics and Machine Learning Toolbox'), ...
     'Statistics and Machine Learning Toolbox must be installed.');
-assert(contains(struct2array(ver), ...
-    'Signal Processing Toolbox'), ...
-    'Signal Processing Toolbox must be installed.');
+clear toolboxInstalled
 
 % PARSE INPUT
 [subjectDir, varargin{:}] = convertStringsToChars(subjectDir, varargin{:});
