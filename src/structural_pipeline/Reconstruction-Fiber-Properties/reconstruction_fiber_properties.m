@@ -12,6 +12,7 @@ updateStatus(configParams.general.statusFile, status);
 fprintf('---reconstruction_fiber_properties started----\n');
 
 % Variables
+maxMemoryGB = configParams.general.maxMemoryGB;
 diffusionMeasuresFile = configParams.reconstruction_diffusion.diffusionMeasuresFile;
 parcellationFile = configParams.parcellation.parcellationFile;
 ROIsFile = configParams.general.ROIsFile;
@@ -50,7 +51,7 @@ for iMethod = 1:length(reconMethods)
 
     % Compute fiber properties
     [fiberProperties, propertyDescriptions] = getFiberPropertiesFromFile(thisFiberFile, ...  
-        ROIsList, parcellation, diffusionMeasures, weightDescriptions, includeGMVoxelsFlag); 
+        ROIsList, parcellation, diffusionMeasures, weightDescriptions, maxMemoryGB, includeGMVoxelsFlag); 
     
     % Save properties
     save(thisfiberPropertiesFile, 'fiberProperties', 'propertyDescriptions');
