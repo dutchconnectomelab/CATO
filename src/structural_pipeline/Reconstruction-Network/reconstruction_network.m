@@ -98,10 +98,12 @@ for iTemplate = 1:length(templates)
         %% Construct matrices
         W = zeros(nRegions, nRegions, 1+nWeights+2);
         
+        assert(max(fiberProperties(:, 2)) < 0.5*nRegions*(nRegions-1), ...
+            ['The number of regions does not match between ', ...
+            'fiberPropertiesFile (%s) and regionPropertiesFile (%s).'], ...
+            thisFiberPropertiesFile, thisRegionPropertiesFile);
         NOS = accumarray(fiberProperties(:, 2), double(filterIndx), ...
             [0.5*nRegions*(nRegions-1) 1]);
-        % TODO: error if regionProperties file does not match
-        % fiberProperties file.
         W(:, :, 1) = squareform(NOS);
         weightDescriptions{1} = 'number of streamlines';
         
