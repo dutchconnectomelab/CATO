@@ -75,6 +75,13 @@ parse_input()
             sliceTimingCorrection=${1#*=}
             shift
         ;;
+        --mri_convertOptions*)
+            firstPart=${1#--mri_convertOptions.}
+            name=${firstPart%=*}
+            val=${1#*=}
+            mri_convertOptions+=("-${name} ${val}")
+            shift
+        ;;        
         --fmriReferenceFile=*)
             fmriReferenceFile=${1#*=}
             shift
@@ -124,6 +131,18 @@ parse_input "$@"
 
 # TODO: convert MNC to NIFTI
 cp "$fmriFile" "$fmriProcessedFile"
+
+# Upate fmriProcessedFile header if items are missing (e.g. RT)
+if [ -z "$mri_convertOptions" ]
+then
+    mri_convert ${mri_convertOptions[@]} "$fmriProcessedFile" "$fmriProcessedFile"
+fi
+
+if [ $(mri_info --tr  $fmriProcessedFile 2>/dev/null | tail -n1) -eq 0 ]
+then
+    echo "Repetition time is missing in NifTi header (TR=0.00 msec). Use mri_convertOptions parameter to adjust this value to the true repetition time" >&2
+    exit 1
+fi
 
 # perform slice timing correction
 if [ "$sliceTimingCorrection" = true ] ; then
