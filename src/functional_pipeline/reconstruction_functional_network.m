@@ -164,7 +164,7 @@ for iMethod = 1:length(methods)
             'or adjust minRepetitionTime-parameter'], repetitionTimeMsec, minRepetitionTime);
         repetitionTimeSec = repetitionTimeMsec/1000;
         
-        fprintf('- band-pass filtering: pass signal between %g - %gHz (TR=%ims)\n', ...
+        fprintf('- band-pass filtering: pass signal between %g - %gHz (TR=%gms)\n', ...
             bandpass_filter.frequencies, repetitionTimeMsec);        
         
         [filter_b, filter_a] = butter(2, 2*repetitionTimeSec*bandpass_filter.frequencies);
