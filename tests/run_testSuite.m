@@ -1,5 +1,4 @@
 %% Initialize
-
 testDir = fileparts(mfilename('fullpath'));
 assetsDir = fullfile(testDir, 'assets');
 testSubjectsDir = fullfile(testDir, 'testSubjects');
@@ -67,7 +66,6 @@ result = runner.run([suiteSCPreprocessing ...
 disp(result);
 
 %% Cleanup
-
 rmdir(testSubjectsDir, 's');
 
 assertSuccess(result);
