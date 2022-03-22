@@ -69,3 +69,5 @@ disp(result);
 %% Cleanup
 
 rmdir(testSubjectsDir, 's');
+
+assertSuccess(result);
