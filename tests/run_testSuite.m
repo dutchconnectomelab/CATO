@@ -4,10 +4,13 @@ assetsDir = fullfile(testDir, 'assets');
 testSubjectsDir = fullfile(testDir, 'testSubjects');
 toolboxDir = fullfile(fileparts(testDir), 'src');
 
+cd(testDir);
+
 oldPath = path;
 cleanupPath = onCleanup(@() path('',oldPath));
 
 restoredefaultpath;
+addpath(genpath(testDir));
 addpath(genpath(toolboxDir));
 addpath(genpath(testDir));
 
@@ -68,4 +71,6 @@ disp(result);
 %% Cleanup
 rmdir(testSubjectsDir, 's');
 
-assertSuccess(result);
+%% Assert all tests passed
+% assertSuccess(result); % introduced in R2020a
+assert(all([result.Passed]))
