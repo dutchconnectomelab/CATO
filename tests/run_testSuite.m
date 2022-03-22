@@ -71,4 +71,6 @@ disp(result);
 %% Cleanup
 rmdir(testSubjectsDir, 's');
 
-assertSuccess(result);
+%% Assert all tests passed
+% assertSuccess(result); % introduced in R2020a
+assert(all([result.Passed]))
