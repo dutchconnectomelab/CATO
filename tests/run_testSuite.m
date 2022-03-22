@@ -63,7 +63,6 @@ result = runner.run([suiteSCPreprocessing ...
     suiteSC ...
     suiteFC]);
 
-disp('Results:');
 disp(result);
 
 %% Cleanup
