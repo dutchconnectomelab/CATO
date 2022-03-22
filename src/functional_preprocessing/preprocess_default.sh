@@ -129,18 +129,19 @@ trap error ERR
 
 parse_input "$@"
 
-# TODO: convert MNC to NIFTI
 cp "$fmriFile" "$fmriProcessedFile"
 
-# Upate fmriProcessedFile header if items are missing (e.g. RT)
-if [ -z "$mri_convertOptions" ]
+# Upate fmriProcessedFile header if items are missing (e.g. repetition time)
+if [ ! -z "$mri_convertOptions" ]
 then
     mri_convert ${mri_convertOptions[@]} "$fmriProcessedFile" "$fmriProcessedFile"
 fi
 
-if [ $(mri_info --tr  $fmriProcessedFile 2>/dev/null | tail -n1) -eq 0 ]
+tr=$(mri_info --tr  "$fmriProcessedFile" 2>/dev/null | tail -n1)
+if [  $tr -eq 0 ]
 then
-    echo "Repetition time is missing in NifTi header (TR=0.00 msec). Use mri_convertOptions parameter to adjust this value to the true repetition time" >&2
+    echo "Repetition time is missing in NifTi header (TR=0.00 msec).
+    Use mri_convertOptions parameter to adjust this value to the true repetition time" >&2
     exit 1
 fi
 
