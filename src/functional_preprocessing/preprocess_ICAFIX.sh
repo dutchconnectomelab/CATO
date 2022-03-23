@@ -10,6 +10,16 @@
 #      the T1 image (using Freesurfer).
 #   5. Registers the T1 parcellation to the reference rs-fMRI image (using
 #      Freesurfer).
+#   6. Perform FSL tool melodic.
+#   7. Perform FSL tool FIX.
+
+# Needs configuration file parameters, e.g.:
+#   "highPass":2000, 
+#   "fixDir":"/usr/local/fix", 
+#   "trainingData":"/usr/local/fix/training_files/standard.RData", 
+#   "fixThreshold":5, 
+#   "doMotionRegression":true, 
+#   "T1File":"T1/SUBJECT_T1.nii.gz"    
 
 # https://google.github.io/styleguide/shellguide.html
 
@@ -208,6 +218,7 @@ mri_label2vol --seg "${freesurferDir}/mri/aseg.mgz" --temp "$fmriReferenceFile" 
     --reg "$registrationMatrixFile" --o "$segmentationFile"
 
 # perform motion correction
+echo "Perform motion correction"
 mcflirt -in "$fmriProcessedFile" -plots
 mv "${fmriProcessedFile/.nii.gz/_mcf.nii.gz}" "$fmriProcessedFile"
 mv "${fmriProcessedFile/.nii.gz/_mcf.par}" "$motionParametersFile"
@@ -220,6 +231,7 @@ fslmaths ${fmriProcessedFile} -Tmean ${fmrihp}
 fslmaths ${fmriProcessedFile} -sub ${fmrihp} -bptf ${hptr} -1 -add ${fmrihp} ${fmrihp}
 
 # run melodic
+echo "Run melodic"
 fmrihpDir="${fmrihp}_ICA_FIX"
 mkdir -p ${fmrihpDir}
 melodic -i ${fmrihp} -o ${fmrihpDir}/filtered_func_data.ica --nobet --report --Oall --tr=${tr}
@@ -243,6 +255,7 @@ flirt -in $(pwd)/$T1File \
       -omat ${fmrihpDir}/reg/highres2example_func.mat
 
 # run fix
+echo "Run fix"
 if [[ ${doMotionRegression} = "true" ]]; then
     ${fixDir}/fix "$(pwd)/${fmrihpDir}" "${trainingData}" "${fixThreshold}" -m -h "${highPass}"
 else
