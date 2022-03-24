@@ -75,8 +75,8 @@ parse_input()
             sliceTimingCorrection=${1#*=}
             shift
         ;;
-        --mri_convertOptions*)
-            firstPart=${1#--mri_convertOptions.}
+        --fmriInfo=*)
+            firstPart=${1#--fmriInfo.}
             name=${firstPart%=*}
             val=${1#*=}
             mri_convertOptions+=("-${name} ${val}")
