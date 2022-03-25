@@ -114,7 +114,7 @@ rm "${dwiReferenceFile/.nii.gz/_indv_}"*.nii.gz
 # compute registration matrix
 bbregister --s "$freesurferDir" --mov "$dwiReferenceFile" --reg "$registrationMatrixFile" \
     --dti --init-fsl
-rm "$registrationMatrixFile".{mincost,param,sum,log}
+rm -f "${registrationMatrixFile%.dat}".{dat.mincost,dat.param,dat.sum,dat.log,log}
 
 # register freesurfer segmentation to reference volume
 mri_label2vol --seg "${freesurferDir}/mri/aseg.mgz" --temp "$dwiReferenceFile" \
