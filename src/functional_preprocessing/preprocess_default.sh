@@ -76,10 +76,12 @@ parse_input()
             shift
         ;;
         --fmriInfo=*)
-            firstPart=${1#--fmriInfo.}
-            name=${firstPart%=*}
-            val=${1#*=}
-            mri_convertOptions+=("-${name} ${val}")
+            if [[ ${1} == *.* ]]; then
+                firstPart=${1#--fmriInfo.}
+                name=${firstPart%=*}
+                val=${1#*=}
+                mri_convertOptions+=("-${name} ${val}")
+            fi
             shift
         ;;        
         --fmriReferenceFile=*)
@@ -131,7 +133,7 @@ parse_input "$@"
 
 cp "$fmriFile" "$fmriProcessedFile"
 
-# Upate fmriProcessedFile header if items are missing (e.g. repetition time)
+# upate fmriProcessedFile header if items are missing (e.g. repetition time)
 if [ ! -z "$mri_convertOptions" ]
 then
     mri_convert ${mri_convertOptions[@]} "$fmriProcessedFile" "$fmriProcessedFile"
