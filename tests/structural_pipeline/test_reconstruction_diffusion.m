@@ -121,5 +121,39 @@ classdef test_reconstruction_diffusion < matlab.unittest.TestCase
 
         end
         
+        function testThresholdAssistant(testCase, subjectDir)
+            
+            % Test threshold parameters estimated by threshold assistant
+            cs = structural_pipeline(pwd, ...
+                'configurationFile', fullfile(subjectDir, 'config_SC_ref.json'), ...
+                'reconstructionSteps', 'reconstruction_diffusion', ...
+                'general.reconstructionMethods', 'dti', ...
+                'general.outputDir', 'DWI_processed_test', 'runType', 'overwrite' ...
+            );    
+        
+            testCase.assertTrue(isfile(cs.general.logFile));
+            logText = textread(cs.general.logFile, '%s', 'delimiter', '####');
+            logText = [logText{:}];
+            testCase.assertTrue(contains(logText, 'Estimated iRESTORE thresholds'));
+
+            % Test threshold parameters specified in configuration
+            cs = structural_pipeline(pwd, ...
+                'configurationFile', fullfile(subjectDir, 'config_SC_ref.json'), ...
+                'reconstructionSteps', 'reconstruction_diffusion', ...
+                'general.reconstructionMethods', 'dti', ...
+                'general.outputDir', 'DWI_processed_test', 'runType', 'overwrite', ...
+                'reconstruction_diffusion.DTI.thresCondNum', 2.11, ...
+                'reconstruction_diffusion.DTI.thresVarProjScores', 0.0916);
+        
+            testCase.assertTrue(isfile(cs.general.logFile));
+            logText = textread(cs.general.logFile, '%s', 'delimiter', '####');
+            logText = [logText{:}];
+            testCase.assertTrue(contains(logText, 'iRESTORE thresholds from configuration file:'));
+            testCase.assertTrue(contains(logText, 'thresCondNum = 2.11, thresVarProjScores = 0.0916'));
+            
+            
+        end
+            
+        
     end
 end
