@@ -32,6 +32,7 @@
 		"segmentationFile": "OUTPUTDIR/SUBJECT_aseg_ref.nii.gz",
 		"sliceTimingCorrection":true,
 		"sliceTimerOptions": "",
+		"fmriInfo": "",
 		"preprocessingScript": "TOOLBOXDIR/functional_preprocessing/preprocess_default.sh"
 	},
 	"parcellation":{
