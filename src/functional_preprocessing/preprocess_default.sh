@@ -75,7 +75,7 @@ parse_input()
             sliceTimingCorrection=${1#*=}
             shift
         ;;
-        --fmriInfo=*)
+        --fmriInfo*)
             if [[ ${1} == *.* ]]; then
                 firstPart=${1#--fmriInfo.}
                 name=${firstPart%=*}
