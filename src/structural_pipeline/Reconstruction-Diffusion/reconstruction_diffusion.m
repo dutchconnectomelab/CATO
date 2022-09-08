@@ -28,6 +28,10 @@ diffusionMeasuresFile = configParams.reconstruction_diffusion.diffusionMeasuresF
 nonlinearitiesFlag = configParams.reconstruction_diffusion.gradientNonlinearities.correctNonlinearities;
 nonlinearitiesFile = configParams.reconstruction_diffusion.gradientNonlinearities.nonlinearitiesFile;
 
+thresCondNum = configParams.reconstruction_diffusion.DTI.thresCondNum;
+thresVarProjScores = configParams.reconstruction_diffusion.DTI.thresVarProjScores;
+
+
 % Load processed DWI file.
 try
     dwi = load_nifti(dwiProcessedFile);
@@ -76,7 +80,13 @@ nVoxels = size(signalIntensities, 1);
 if any(strcmpi(reconMethods, 'dti'))
     fprintf('reconstruction method: DTI\n');
     
-    [thresCondNum, thresVarProjScores] = thresholdAssistant(gtab);
+    if isempty(thresCondNum) | isempty(thresVarProjScores)
+        [thresCondNum, thresVarProjScores] = thresholdAssistant(gtab);
+        fprintf('Estimated iRESTORE thresholds:\n\tthresCondNum = %.3g, thresVarProjScores = %.3g\n', thresCondNum, thresVarProjScores);
+    else
+        fprintf('iRESTORE thresholds from configuration file:\n\tthresCondNum = %.3g, thresVarProjScores = %.3g\n', thresCondNum, thresVarProjScores);
+    end
+
     
     diffusionTensors = nan(nVoxels, 6);
     if ~nonlinearitiesFlag
