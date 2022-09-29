@@ -11,13 +11,17 @@ function writeTrkHeader(fid, header)
 %   which is distributed under the GPL-3.0 License
 
 % Check orientation
+assert(any(header.image_orientation_patient), ...
+    ['Track file header has empty "image_orientation_patient" field.\n', ... 
+    'The image orientation cannot be determined.']);
+
 [~, ix] = max(abs(header.image_orientation_patient(1:3)));
 [~, iy] = max(abs(header.image_orientation_patient(4:6)));
 iz = 1:3;
 iz([ix iy]) = [];
 assert(isequal([ix iy iz], [1 2 3]), ...
-    ['Image orientation of the original image is assumed LPS. Other ', ...
-    'orientations are not supported.']);
+    ['Track file header contains and unsuported image orientation ([%g %g %g]).\n', ...
+    'Only "LPS" ([1 2 3]) is supported'], ix, iy, iz);
 
 % Write TrackVis header
 fwrite(fid, charpad(header.id_string, 1, 6), 'char*1');
