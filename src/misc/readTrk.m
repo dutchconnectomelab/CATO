@@ -1,4 +1,4 @@
-function fibers = readTrk(fiberFile)
+function [fibers, header] = readTrk(fiberFile)
 % READTRK Read fiber file (in TRK-format).
 %
 %   INPUT VARIABLES
@@ -8,6 +8,9 @@ function fibers = readTrk(fiberFile)
 %   OUTPUT VARIABLES
 %   fibers:
 %   Fibers in cell-format.
+%
+%   header:
+%   Header of fiber file.
 
 [fid, message] = fopen(fiberFile, 'r');
 header = readTrkHeader(fid);
@@ -29,11 +32,6 @@ while true
     
     if isempty(points)
         break;
-    end
-
-    % We need at least 3 steps (1 WM voxel).
-    if points < 5 
-        continue
     end
 
     fibers{iFiber} = thisFiber;

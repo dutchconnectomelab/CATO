@@ -3,18 +3,17 @@ function compute_motion_metrics(configParams)
 %% Initialization
 status.compute_motion_metrics = 'running';
 updateStatus(configParams.general.statusFile, status);
-fprintf('---Compute_motion_metrics started----\n');
+fprintf('---compute_motion_metrics started----\n');
 
 %% Computation motion metrics
 motionParametersFile = configParams.functional_preprocessing.motionParametersFile;
-fmriProcessedFile = configParams.functional_preprocessing.fmriProcessedFile;
 motionMetricsFile = configParams.compute_motion_metrics.motionMetricsFile;
 segmentationFile = configParams.functional_preprocessing.segmentationFile;
 
 motionParams = dlmread(motionParametersFile);
 
-props = getNiftiProperties(fmriProcessedFile);
-ntimepoints = props.dim(4);
+[~, props] = load_nifti_fmri(configParams, []);
+ntimepoints = props.dim(5);
 
 metricDescriptions = {'FD'; 'DVARS'};
 motionMetrics = zeros(length(metricDescriptions), ntimepoints);

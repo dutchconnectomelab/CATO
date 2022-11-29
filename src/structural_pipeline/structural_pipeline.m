@@ -52,9 +52,13 @@ if verLessThan('matlab','9.3')
         'older version might result in unexpected errors.']);
 end
 
-% CATO uses statistics and signal toolbox.
+% The structural pipeline uses the Statistics and Machine Learning Toolbox
 license('checkout','statistics_toolbox');
-license('checkout','signal_toolbox');
+toolboxInstalled = ver;
+assert(contains([toolboxInstalled.Name], ...
+    'Statistics and Machine Learning Toolbox'), ...
+    'Statistics and Machine Learning Toolbox must be installed.');
+clear toolboxInstalled
 
 % PARSE INPUT
 [subjectDir, varargin{:}] = convertStringsToChars(subjectDir, varargin{:});
@@ -291,6 +295,7 @@ for i = 1:size(reconStepNames, 1)
         MEStep = MException('CATO:structural_pipeline', ...
             'Error in %s step.', reconStepNames{i});
         ME = addCause(MEStep, ME);
+        status.(reconStepNames{i}) = 'error';
         status.general = 'error';
         break
     end
@@ -302,9 +307,11 @@ updateStatus(configParams.general.statusFile, status);
 switch status.general
     case 'error'
         MEcause = textwrap({ME.cause{1}.message}, 50);
+        MEfile = [{ME.cause{1}.stack.name}; {ME.cause{1}.stack.line}];
         fprintf('%s\n\n', ME.message)
         fprintf('Details:\n');
-        fprintf('\t%s\n', MEcause{:})
+        fprintf('\t%s\n', MEcause{:});
+        fprintf('\tError in: %s (Line %i)\n', MEfile{:});
     case 'finished'
         timeEnd = datetime('now');
         fprintf('\n-----------------------------------\n');

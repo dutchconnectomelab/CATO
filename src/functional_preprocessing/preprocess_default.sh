@@ -75,6 +75,15 @@ parse_input()
             sliceTimingCorrection=${1#*=}
             shift
         ;;
+        --fmriInfo*)
+            if [[ ${1} == *.* ]]; then
+                firstPart=${1#--fmriInfo.}
+                name=${firstPart%=*}
+                val=${1#*=}
+                mri_convertOptions+=("-${name} ${val}")
+            fi
+            shift
+        ;;        
         --fmriReferenceFile=*)
             fmriReferenceFile=${1#*=}
             shift
@@ -122,8 +131,21 @@ trap error ERR
 
 parse_input "$@"
 
-# TODO: convert MNC to NIFTI
 cp "$fmriFile" "$fmriProcessedFile"
+
+# upate fmriProcessedFile header if items are missing (e.g. repetition time)
+if [ ! -z "$mri_convertOptions" ]
+then
+    mri_convert ${mri_convertOptions[@]} "$fmriProcessedFile" "$fmriProcessedFile"
+fi
+
+tr=$(mri_info --tr  "$fmriProcessedFile" 2>/dev/null | tail -n1)
+if [  $tr -eq 0 ]
+then
+    echo "Repetition time is missing in NifTi header (TR=0.00 msec).
+    Use mri_convertOptions parameter to adjust this value to the true repetition time" >&2
+    exit 1
+fi
 
 # perform slice timing correction
 if [ "$sliceTimingCorrection" = true ] ; then
@@ -148,7 +170,7 @@ fi
 
 bbregister --s "$freesurferDir" --mov "$fmriReferenceFile" --reg "$registrationMatrixFile" \
     --bold --init-fsl
-rm "$registrationMatrixFile".{mincost,param,sum,log}
+rm -f "${registrationMatrixFile%.dat}".{dat.mincost,dat.param,dat.sum,dat.log,log}
 
 # register freesurfer segmentation to reference volume
 mri_label2vol --seg "${freesurferDir}/mri/aseg.mgz" --temp "$fmriReferenceFile" \

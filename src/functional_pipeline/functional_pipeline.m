@@ -52,9 +52,14 @@ if verLessThan('matlab','9.3')
         'older version might result in unexpected errors.']);
 end
 
-% CATO uses statistics and signal toolbox.
-license('checkout','statistics_toolbox');
+% The functional pipeline uses the Signal Processing Toolbox.
 license('checkout','signal_toolbox');
+toolboxInstalled = ver;
+assert(contains([toolboxInstalled.Name], ...
+    'Signal Processing Toolbox'), ...
+    'Signal Processing Toolbox must be installed.');
+clear toolboxInstalled
+
 
 % PARSE INPUT
 [subjectDir, varargin{:}] = convertStringsToChars(subjectDir, varargin{:});
@@ -64,7 +69,7 @@ assert(ischar(subjectDir), ...
     'subjectDir must be a row vector of characters or string scalar.');
 assert(isdir(subjectDir), ...
     'CATO:functional_pipeline:subjectDirNotDir', ...
-    'subjectDir (%s) is not a directory', subjectDir);
+    'subjectDir (%s) is not a directory.', subjectDir);
 
 [configFile, runType, configParamsCl] = parseVarargin(varargin{:});
 % parseVarargin does also error handling.
@@ -317,6 +322,7 @@ for i = 1:size(reconStepNames, 1)
             'Error in %s step.', reconStepNames{i});
         ME = addCause(MEStep, ME);
         status.general = 'error';
+        status.(reconStepNames{i}) = 'error';
         break
     end 
 end
@@ -327,9 +333,11 @@ updateStatus(configParams.general.statusFile, status);
 switch status.general
     case 'error'
         MEcause = textwrap({ME.cause{1}.message}, 50);
+        MEfile = [{ME.cause{1}.stack.name}; {ME.cause{1}.stack.line}];
         fprintf('%s\n\n', ME.message)
         fprintf('Details:\n');
-        fprintf('\t%s\n', MEcause{:})
+        fprintf('\t%s\n', MEcause{:});
+        fprintf('\tError in: %s (Line %i)\n', MEfile{:});
     case 'finished'
         timeEnd = datetime('now');
         fprintf('\n-----------------------------------\n');

@@ -6,8 +6,7 @@ Thumbs.db
 *.m~
 ~$*.xls*
 # Other files
-examples/
-test/
+bin/
 run_testcases.m
 # include git-files
 !.git*
