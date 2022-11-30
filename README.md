@@ -14,6 +14,8 @@ The toolbox is presented in:
 ## Installation
 CATO binaries and source code can be downloaded from the [releases section on this repository](https://github.com/dutchconnectomelab/CATO/releases).
 
+CATO can also be used inside the [CATO Docker image](http://hub.docker.com/r/dutchconnectomelab/cato).
+
 An installation guide and more information about additionally needed software is provided on the [installation section on the CATO website](http://www.dutchconnectomelab.nl/CATO/docs/installation.html).
 
 ## Getting started
