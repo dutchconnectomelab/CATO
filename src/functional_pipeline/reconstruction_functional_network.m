@@ -115,10 +115,11 @@ for iMethod = 1:length(methods)
     % Normalize regressors to avoid non-invertible matrices.
     regressors = bsxfun(@rdivide, regressors, mean(abs(regressors), 2));
 
-    % Slow implementation:
-    %     % Add column of constants for regress function.
-    %     regressors = [ones(1, size(regressors, 2)); regressors];
+    % Add column of constants.
+    regressors = [ones(1, size(regressors, 2)); regressors];
     
+    % Slow implementation:
+    %
     %     % Apply regressors
     %     selectedTimeSeries = fmri.Data.signalIntensities(selectedVoxels, :);
     %     
