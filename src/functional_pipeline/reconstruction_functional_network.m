@@ -115,10 +115,11 @@ for iMethod = 1:length(methods)
     % Normalize regressors to avoid non-invertible matrices.
     regressors = bsxfun(@rdivide, regressors, mean(abs(regressors), 2));
 
-    % Slow implementation:
-    %     % Add column of constants for regress function.
-    %     regressors = [ones(1, size(regressors, 2)); regressors];
+    % Add column of constants.
+    regressors = [ones(1, size(regressors, 2)); regressors];
     
+    % Slow implementation:
+    %
     %     % Apply regressors
     %     selectedTimeSeries = fmri.Data.signalIntensities(selectedVoxels, :);
     %     
@@ -170,11 +171,27 @@ for iMethod = 1:length(methods)
         [filter_b, filter_a] = butter(2, 2*repetitionTimeSec*bandpass_filter.frequencies);
         
         % Use for-loop to avoid memory issues from having double. (1sec difference)
-        % filteredSignal = filtfilt(filter_b, filter_a, double(signalIntensities(selectedVoxels, :)));
         filteredSignal = zeros(size(signalIntensities), 'single');
         for i = 1:size(signalIntensities, 1)
-            filteredSignal(i,:) = filtfilt(filter_b, filter_a, ...
-                double(signalIntensities(i, :)));
+            voxelSignal = double(signalIntensities(i, :))';
+            
+            % apply mirror padding to avoid edge effects
+            paddingLength = max(1, 3*filtord(filter_b));
+            voxelSignalPadded = [
+                voxelSignal(paddingLength+1:-1:2);
+                voxelSignal(:);
+                voxelSignal(end-1:-1:end-paddingLength)
+            ];
+
+
+            % apply filter backwards and forwards to eliminate phase shift
+            voxelSignalPadded = filter(filter_b,filter_a,voxelSignalPadded);
+            voxelSignalPadded = filter(filter_b,filter_a,voxelSignalPadded(end:-1:1));
+
+            % remove mirror padding
+            voxelSignal = voxelSignalPadded(end-paddingLength:-1:paddingLength+1);
+            
+            filteredSignal(i,:) = voxelSignal;
         end
         
         signalIntensities = filteredSignal;

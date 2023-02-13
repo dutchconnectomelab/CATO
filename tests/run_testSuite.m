@@ -1,4 +1,12 @@
 %% Initialize
+
+% test suite requires MATLAB version 2018b or newer
+if verLessThan('matlab','9.5')
+    warning('CATO:testSuite:NotCompatible', ...
+        ['CATO test suite requires MATLAB 2018b (or newer).']);
+end
+
+
 testDir = fileparts(mfilename('fullpath'));
 assetsDir = fullfile(testDir, 'assets');
 testSubjectsDir = fullfile(testDir, 'testSubjects');
@@ -23,11 +31,11 @@ testSubjectsFC = simulate_functional_data(testSubjectsDir);
 testSubjectsSC = simulate_structural_data(testSubjectsDir);
 
 %% Create and run test suite
-import matlab.unittest.TestSuite
+import matlab.unittest.TestSuite;
 
-import matlab.unittest.parameters.Parameter
+import matlab.unittest.parameters.Parameter;
 import matlab.unittest.selectors.HasParameter;
-import matlab.unittest.constraints.StartsWithSubstring
+import matlab.unittest.constraints.StartsWithSubstring;
 % Option: Add HasParameter('Name','csd') as input variable to
 % TestSuite.fromFolder() to select specific tests (where csd is tested).
 

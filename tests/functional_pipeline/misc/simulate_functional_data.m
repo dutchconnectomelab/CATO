@@ -55,34 +55,16 @@ NT.srow_z = zeros(4,1);
 NT.srow_z(3) = 1;
 NT.pixdim = [1 1 1 1 repetitionTime 1 1 1]';
 
-% INITIALIZATION
 [~, ~] = mkdir(configParams.general.outputDir);
 
 %% Simulate rs-fMRI data
 
-% Make covariance matrix and model rs-fMRI data as a multivariate normal
-% distribution.
-refCov = rand(nRegions,nRegions);
-refCov(end+1:end+7, end+1:end+7) = eye(7);
-refCov = normalize(refCov, 'norm');
-refCov = refCov' * refCov;
-
-S = 1000*mvnrnd(10 * ones(nRegions+7,1), refCov,nScans);
-
-noise = S(:,nRegions+1);
-rotationParams = S(:,nRegions+2:nRegions+4);
-translationParams = S(:,nRegions+5:nRegions+7);
-S = S(:, 1:nRegions);
-
-% partial correlations:
-% Sp = zeros(size(S));
-% X = [rotationParams translationParams];
-% X = [X [zeros(1,size(X,2)); diff(X', 1, 2)'] noise];
-% X = bsxfun(@rdivide, X', mean(abs(X'), 2))';
-% for i = 1:nRegions
-%     SpMdl = fitlm(X, S(:,i), 'intercept', false);
-%     Sp(:,i) = SpMdl.Residuals.Raw - mean(SpMdl.Residuals.Raw);
-% end
+% Make covariance matrix and model rs-fMRI data as a sinusoid at 0.05Hz
+regionPhase = 2*pi .* linspace(0,1, nRegions)';
+S = sin([0:(nScans-1)] * 2*pi * (repetitionTime * 0.05 / 1000)  - regionPhase)';
+refCov = cos(regionPhase - regionPhase');
+S = 100*(S + 1.5);
+S = S + randn(size(S)); % Add small noise such that partialcorr can be computed.
 
 data_partial.connectivity = partialcorr(S);
 data_partial.connectivity(eye(nRegions)>0) = 0;
@@ -91,8 +73,12 @@ S = permute(S, [2 3 4 1]);
 S = reshape(S, sqrt(nRegions), sqrt(nRegions), 1, []);
 S = repelem(S, 2,2,3);
 
+noise = 0.2*randn(nScans, 1);
+rotationParams = 0.2*randn(nScans, 3);
+translationParams = 0.2*randn(nScans, 3);
+
 % Create one voxel with noise to regress out in regression step.
-S(1,1,1,:) = noise;
+S(1,1,1,:) = 100*(noise + min(noise));
 
 NT.vol = S;
 save_nifti(NT, configParams.functional_preprocessing.fmriProcessedFile);
