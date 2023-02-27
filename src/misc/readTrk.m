@@ -12,7 +12,12 @@ function [fibers, header] = readTrk(fiberFile)
 %   header:
 %   Header of fiber file.
 
-[fid, message] = fopen(fiberFile, 'r');
+[fid, errorMessage] = fopen(fiberFile, 'r');
+
+if fid == -1
+    error('CATO:readTrk:fileNotFound', '%s ''%s''.', errorMessage, fiberFile);
+end
+
 header = readTrkHeader(fid);
 
 iFiber = 0;
