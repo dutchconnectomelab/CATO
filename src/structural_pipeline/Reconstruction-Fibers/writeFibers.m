@@ -26,10 +26,19 @@ if nargin == 4
     header.n_properties = 0;
     header.n_scalars = 0;
     
+    [~, ~] = mkdir(fileparts(fiberFile));
     [fid, ~] = fopen(fiberFile, 'Wb');
+    
+    if fid == -1
+        error('CATO:writeFibers:cannotCreateFile', 'Cannot create fiber file''%s''.', fiberFile);
+    end
+    
     writeTrkHeader(fid, header);
+    
 else
+    
     [fid, ~] = fopen(fiberFile, 'Ab');
+    
 end
 
 if isempty(fibers)
