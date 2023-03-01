@@ -25,6 +25,7 @@ function writeFibers(fibers, fiberFile, voxelSize, header)
 if nargin == 4
     header.n_properties = 0;
     header.n_scalars = 0;
+    header.n_count = length(fibers);
     
     [~, ~] = mkdir(fileparts(fiberFile));
     [fid, ~] = fopen(fiberFile, 'Wb');

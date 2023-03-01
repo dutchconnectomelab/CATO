@@ -115,7 +115,6 @@ for iTemplate = 1:length(templates)
         fprintf('Write intermediate files for Python COMMIT script...');
         voxelSize = headerFiberFile.voxel_size;
         headerFiberFile.voxel_order = strtrim(headerFiberFile.voxel_order);
-        headerFiberFile.n_count = length(fibers);
         writeFibers(fibers, thisFilteredFiberFile, voxelSize, headerFiberFile);
 
         % Create connectome file for COMMIT script with the updated NOS.
