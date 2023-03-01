@@ -24,7 +24,7 @@ os.chdir(args.subjectDir)
 trk2dictionary.run(
     filename_tractogram = args.fiberFile,
     path_out = 'DWI_processed_test/COMMIT',
-    fiber_shift         = 0.5
+    fiber_shift         = 0
 )
 
 # load the data
