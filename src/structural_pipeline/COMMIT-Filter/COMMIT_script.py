@@ -25,7 +25,7 @@ os.chdir(args.subjectDir)
 
 trk2dictionary.run(
     filename_tractogram = args.fiberFile,
-    path_out = 'DWI_processed_test/COMMIT',
+    path_out = args.outputCommitDir,
     fiber_shift         = 0
 )
 
@@ -44,7 +44,7 @@ mit.generate_kernels( regenerate=True )
 mit.load_kernels()
 
 # create the sparse data structures to handle the matrix A
-mit.load_dictionary( 'DWI_processed_test/COMMIT' )
+mit.load_dictionary( args.outputCommitDir )
 mit.set_threads()
 mit.build_operator()
 
