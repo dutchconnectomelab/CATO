@@ -31,6 +31,7 @@ commitScriptFile = configParams.commit_filter.commitScriptFile;
 fiberWeightsFile = configParams.commit_filter.fiberWeightsFile;
 filteredConnectivityMatrixFile = configParams.commit_filter.filteredConnectivityMatrixFile;
 outputCommitDir = configParams.commit_filter.outputCommitDir;
+lambda = configParams.commit_filter.lambda;
 subjectDir = pwd;
 
 
@@ -140,6 +141,7 @@ for iTemplate = 1:length(templates)
             ' --subjectDir=' subjectDir, ...
             ' --fiberFile=' thisFilteredFiberFile, ...
             ' --outputCommitDir=' outputCommitDir, ...
+            ' --regLambda=' num2str(lambda), ...
             ' --intermediateConnectomeFile=' intermediateConnectomeFile];
 
         fprintf('COMMIT script:\n%s\n', commitScriptFile);

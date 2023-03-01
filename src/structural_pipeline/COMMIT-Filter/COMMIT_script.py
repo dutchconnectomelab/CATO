@@ -12,9 +12,11 @@ argParser = argparse.ArgumentParser()
 argParser.add_argument("--dwiProcessedFile", help="preprocessed DWI file", required=True)
 argParser.add_argument("--dwiSchemeFile", help="DWI scheme file", required=True)
 argParser.add_argument("--fiberFile", help="Input fiber file", required=True)
-argParser.add_argument("--outputCommitDir", help="Output directory for COMMIT.", required=True)
+argParser.add_argument("--outputCommitDir", help="Output directory for COMMIT", required=True)
 argParser.add_argument("--intermediateConnectomeFile", help="Connectome file with number of streamline per connection (for internal use)", required=True)
 argParser.add_argument("--subjectDir", help="Subject directory", required=True)
+argParser.add_argument("--regLambda", help="Regularisation parameter lambda", required=True)
+
 args = argParser.parse_args()
 
 # Import tractogram
@@ -65,15 +67,12 @@ group_w = np.empty_like( group_size, dtype=np.float64 )
 for k in range(group_size.size) :
     group_w[k] = np.sqrt(group_size[k]) / ( np.linalg.norm(x_nnls[group_idx[k]]) + 1e-12 )
 
-# TODO: examine best lambda setting.
-reg_lambda = 5e-4 # change to suit your needs
-
 prior_on_bundles = commit.solvers.init_regularisation(
     mit,
     regnorms    = [commit.solvers.group_sparsity, commit.solvers.non_negative, commit.solvers.non_negative],
     structureIC = group_idx,
     weightsIC   = group_w,
-    lambdas     = [reg_lambda, 0.0, 0.0]
+    lambdas     = [args.regLambda, 0.0, 0.0]
 )
 
 mit.fit( tol_fun=1e-3, max_iter=1000, regularisation=prior_on_bundles, verbose=False )
