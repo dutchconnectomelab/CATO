@@ -3,11 +3,9 @@
 
 import numpy as np
 import os
-import sys
 import commit
 from commit import trk2dictionary
 import argparse
-from contextlib import redirect_stdout
 
 argParser = argparse.ArgumentParser()
 
