@@ -110,7 +110,7 @@ for iTemplate = 1:length(templates)
 
         % Sort/group the filtered fibers by connection
         [~, indx] = sort(fiberProperties(:,2), 'ascend');
-        fibers = fibers(indx);
+        fibers = fibers(fiberProperties(indx,1));
         fprintf(' done\n');
 
         fprintf('Write intermediate files for Python COMMIT script...');
