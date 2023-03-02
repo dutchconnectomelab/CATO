@@ -14,6 +14,9 @@ fiberPropertiesFile = configParams.reconstruction_fiber_properties.fiberProperti
 
 regionPropertiesFile = configParams.collect_region_properties.regionPropertiesFile;
 
+startRegions = configParams.reconstruction_fibers.startRegions;
+segmentationFile = configParams.structural_preprocessing.segmentationFile;
+
 processedBvalsFile = configParams.structural_preprocessing.processedBvalsFile;
 processedBvecsFile = configParams.structural_preprocessing.processedBvecsFile;
 bValueScalingTol = configParams.general.bValueScalingTol;
@@ -32,6 +35,7 @@ fiberWeightsFile = configParams.commit_filter.fiberWeightsFile;
 filteredConnectivityMatrixFile = configParams.commit_filter.filteredConnectivityMatrixFile;
 outputCommitDir = configParams.commit_filter.outputCommitDir;
 lambda = configParams.commit_filter.lambda;
+wmMaskFile = configParams.commit_filter.wmMaskFile;
 subjectDir = pwd;
 
 
@@ -57,6 +61,16 @@ fprintf(fid, '%.6f\t%.6f\t%.6f\t%.6f\n', [gtab.bvecs gtab.bvals]');
 
 fclose(fid);
 
+
+%% Create white matter mask file
+
+segmentation = load_nifti(segmentationFile);
+
+whiteMatterMask = segmentation;
+whiteMatterMask.vol = zeros(size(segmentation.vol));
+whiteMatterMask.vol(ismember(segmentation.vol, startRegions)) = 1;
+
+save_nifti(whiteMatterMask, wmMaskFile);
 
 %% Reconstruct networks for each template and each method.
 for iTemplate = 1:length(templates)
@@ -142,6 +156,7 @@ for iTemplate = 1:length(templates)
             ' --fiberFile=' thisFilteredFiberFile, ...
             ' --outputCommitDir=' outputCommitDir, ...
             ' --regLambda=' num2str(lambda), ...
+            ' --wmMaskFile=' wmMaskFile, ...
             ' --intermediateConnectomeFile=' intermediateConnectomeFile];
 
         fprintf('COMMIT script:\n%s\n', commitScriptFile);

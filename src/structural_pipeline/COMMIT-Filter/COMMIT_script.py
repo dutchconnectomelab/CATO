@@ -15,16 +15,17 @@ argParser.add_argument("--fiberFile", help="Input fiber file", required=True)
 argParser.add_argument("--outputCommitDir", help="Output directory for COMMIT", required=True)
 argParser.add_argument("--intermediateConnectomeFile", help="Connectome file with number of streamline per connection (for internal use)", required=True)
 argParser.add_argument("--subjectDir", help="Subject directory", required=True)
+argParser.add_argument("--wmMaskFile", help="White matter mask file", required=True)
 argParser.add_argument("--regLambda", help="Regularisation parameter lambda", required=True)
 
 args = argParser.parse_args()
 
 # Import tractogram
-# TODO: check fiber_shift
 os.chdir(args.subjectDir)
 
 trk2dictionary.run(
     filename_tractogram = args.fiberFile,
+    filename_mask = args.wmMaskFile,
     path_out = args.outputCommitDir,
     fiber_shift         = 0
 )
