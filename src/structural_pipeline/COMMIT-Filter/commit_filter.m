@@ -29,7 +29,7 @@ filteredFiberFile = configParams.commit_filter.filteredFiberFile;
 filteredFiberPropertiesFile = configParams.commit_filter.filteredFiberPropertiesFile;
 schemeFile = configParams.commit_filter.schemeFile;
 intermediateConnectomeFile = configParams.commit_filter.intermediateConnectomeFile;
-pythonInterpreter = configParams.commit_filter.pythonInterpreter;
+setupPythonScript = configParams.commit_filter.setupPythonScript;
 commitScriptFile = configParams.commit_filter.commitScriptFile;
 fiberWeightsFile = configParams.commit_filter.fiberWeightsFile;
 filteredConnectivityMatrixFile = configParams.commit_filter.filteredConnectivityMatrixFile;
@@ -149,7 +149,7 @@ for iTemplate = 1:length(templates)
         fprintf(' done\n');
 
         % Run Python script to perform COMMIT and COMMIT2
-        cmd = [pythonInterpreter ' "' commitScriptFile '"' ...
+        cmd = [setupPythonScript ' python "' commitScriptFile '"' ...
             ' --dwiProcessedFile=' dwiProcessedFile, ...
             ' --dwiSchemeFile=' schemeFile, ...
             ' --subjectDir=' subjectDir, ...

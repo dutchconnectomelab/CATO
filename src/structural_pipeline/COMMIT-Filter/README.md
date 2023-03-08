@@ -26,7 +26,7 @@ To use the COMMIT-Filter add-on, follow these steps:
   "filteredFiberPropertiesFile":"OUTPUTCOMMITDIR/SUBJECT_fiber_properties_commit_METHOD_TEMPLATE.mat", 
   "schemeFile":"OUTPUTCOMMITDIR/dwi.scheme", 
   "intermediateConnectomeFile":"OUTPUTCOMMITDIR/connectome.csv", 
-  "pythonInterpreter":"/usr/bin/python", 
+  "setupPythonScript":"", 
   "commitScriptFile":"TOOLBOXDIR/structural_pipeline/COMMIT-filter/COMMIT_script.py", 
   "fiberWeightsFile":"OUTPUTCOMMITDIR/Results_StickZeppelinBall_COMMIT2/streamline_weights.txt", 
   "filteredConnectivityMatrixFile":"OUTPUTCOMMITDIR/SUBJECT_connectivity_commit_METHOD_TEMPLATE.mat", 
@@ -34,11 +34,11 @@ To use the COMMIT-Filter add-on, follow these steps:
 }
 ```
 
-**Note:** If you installed COMMIT and its dependencies in a specific Andaconda environment, update the `pythonInterpreter` parameter. For example, if you are using Anaconda and the environment is called COMMIT use:
+**Note:** If you installed COMMIT and its dependencies in a specific Andaconda environment, update the `setupPythonScript` parameter such that the right environment is activated. For example, if you are using Anaconda and the environment is called COMMIT use:
 
 
 ```
-"pythonInterpreter":"/Applications/anaconda3/envs/COMMIT/bin/python", 
+"setupPythonScript":"source /Applications/anaconda3/bin/activate COMMIT;", 
 ```
 
 **Note:** The suitable value of the regularization term `lambda` depends on the dataset. Update this parameter in accordance with your data.
