@@ -30,6 +30,7 @@ To use the COMMIT-Filter add-on, follow these steps:
      "commitScriptFile":"TOOLBOXDIR/../addons/COMMIT-filter/COMMIT_script.py", 
      "fiberWeightsFile":"OUTPUTCOMMITDIR/Results_StickZeppelinBall_COMMIT2/streamline_weights.txt", 
      "filteredConnectivityMatrixFile":"OUTPUTCOMMITDIR/SUBJECT_connectivity_commit_METHOD_TEMPLATE.mat", 
+     "wmMaskFile": "OUTPUTCOMMITDIR/WM_mask.nii.gz",
      "lambda":5E-4
    }
    ```
