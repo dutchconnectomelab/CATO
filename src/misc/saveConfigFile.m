@@ -12,7 +12,11 @@ configParams = jsonencode(configParams);
 
 configParams = prettyjson(configParams);
 
-fid = fopen(configFile, 'w+');
+[fid, errorMessage] = fopen(configFile, 'w+');
+
+if fid == -1
+    error('CATO:saveConfigFile:cannotWriteToFile', 'Cannot write to configuration file (''%s''):\n%s.', configFile, errorMessage);
+end
 
 fprintf(fid, '%s', configParams);
 
