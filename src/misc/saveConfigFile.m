@@ -15,7 +15,7 @@ configParams = prettyjson(configParams);
 [fid, errorMessage] = fopen(configFile, 'w+');
 
 if fid == -1
-    error('CATO:saveConfigFile:cannotWriteToFile', 'Cannot write to configuration file (''%s''):\n%s.', configFile, errorMessage);
+    error('CATO:saveConfigFile:cannotWriteToFile', 'Cannot write to file (''%s''):\n%s.', configFile, errorMessage);
 end
 
 fprintf(fid, '%s', configParams);
