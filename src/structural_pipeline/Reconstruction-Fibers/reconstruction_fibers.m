@@ -39,11 +39,7 @@ trkheader.vox_to_ras = data.vox2ras;
 segmentationVol = data.vol;
 
 % Extracte orientation from transformation
-props = data.vox2ras(1:3, 1:3);
-[I, ~] = find(props); 
-I = (I-1)*2+ 1 + (props([0 3 6]' + I) > 0);
-orientationOptions = ['L' 'R', 'P', 'A', 'I', 'S']';
-orientation = orientationOptions(I)';
+orientation = nifti_orientation(data.vox2ras);
 
 clear data
 
