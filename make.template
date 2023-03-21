@@ -30,7 +30,7 @@ usage()
     specific pipeline steps can be requested on the command line by the STEPS.
 
     Required arguments:
-    -s, --subjectSelection  Directory with a subject's Freesurfer and DWI data
+    -s, --subjectSelection  Directory with a subject's Freesurfer and MRI data
                             or file with list of subject directories.
     -m, --mcrRoot           Installation directory of MATLAB runtime
 
