@@ -38,17 +38,21 @@ classdef test_reconstruction_fibers < matlab.unittest.TestCase
             cp = parseConfigParams(cp);
             
             sform = eye(3);
-            sform(:, :, 2) = [-1 0 0; 0 1 0; 0 0 1];
-            sform(:, :, 3) = [-1 0 0; 0 0 1; 0 1 0];
+            sform(:, :, 2) = [0 -1 0; 1 0 0; 0 0 1];
+            sform(:, :, 3) = ...
+                            [[   -2.0000    0.0000   -0.0000]; ...
+                            [    0.0000    1.7560   -0.9574]; ...
+                            [         0    0.9574    1.7560]];
             sform(:, :, 4) = [0 0 -1; 0 -1 0; -1 0 0];
-            ref = {'RAS', 'LAS', 'LSA', 'IPL'};
+            ref = {'RAS', 'ALS', 'LAS', 'IPL'}; 
             
             for iPerm = 1:size(sform,3)
                 
                 NT = load_nifti(cp.structural_preprocessing.segmentationFile);
-                NT.srow_x = [sform(1,:, iPerm) 0];
-                NT.srow_y  = [sform(2,:, iPerm) 0];
-                NT.srow_z  = [sform(3,:, iPerm) 0];
+                NT.srow = sform(:, :,iPerm);
+                NT.srow_x = [sform(1,:, iPerm) 0]';
+                NT.srow_y  = [sform(2,:, iPerm) 0]';
+                NT.srow_z  = [sform(3,:, iPerm) 0]';
                 NT.pixdim = [1 1 1 1 1000 1 1 1]';
                 save_nifti(NT, strrep(cp.structural_preprocessing.segmentationFile, ...
                     'CATO_ref', 'DWI_processed_test'));
@@ -65,10 +69,17 @@ classdef test_reconstruction_fibers < matlab.unittest.TestCase
                 
                 obs = strtrim(strip(header.voxel_order, char(0)));
                 
-                fprintf('Check orientation: %s', ...
+                fprintf('Reference orientation: %s\n', ...
                     ref{iPerm});
+
+                % Show the orientation according to mri_info
+                fprintf('mri_info:');
+                system(sprintf(['source ~/.bashrc; ' ...
+                    'mri_info --orientation %s | tail -n1'], ...
+                    strrep(cp.structural_preprocessing.segmentationFile, ...
+                    'CATO_ref', 'DWI_processed_test')));
                 
-                testCase.verifyEqual(ref{iPerm}, obs, 'Orientation not correct.')
+                testCase.verifyEqual(obs, ref{iPerm}, 'Orientation not correct.')
                 
             end
             
