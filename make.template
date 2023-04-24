@@ -22,15 +22,16 @@ usage()
     echo -n "structural_pipeline for structural connectivity reconstruction.
 
     Synopsis:
-    structural_pipeline -s SUBJECTDIR -m MCRROOT [OPTION]...
-    structural_pipeline [STEPS]... -s SUBJECTDIR -m MCRROOT [OPTION]...
+    structural_pipeline -s SUBJECTSELECTION -m MCRROOT [OPTION]...
+    structural_pipeline [STEPS]... -s SUBJECTSELECTION -m MCRROOT [OPTION]...
 
     Description:
     CATO structural connectivity reconstruction pipeline. Execution of 
     specific pipeline steps can be requested on the command line by the STEPS.
 
     Required arguments:
-    -s, --subjectDir        Directory with a subject's Freesurfer and DWI data
+    -s, --subjectSelection  Directory with a subject's Freesurfer and MRI data
+                            or file with list of subject directories.
     -m, --mcrRoot           Installation directory of MATLAB runtime
 
     Optional arguments:
@@ -53,12 +54,12 @@ networkSteps=
 while [ -n "$1" ]; do
     shopt -s nocasematch
     case "$1" in
-        -s | --subjectDir)
-        subjectDir=$2
+        -s | --subjectSelection)
+        subjectSelection=$2
         shift 2 
         ;;
-    --subjectDir=*)
-        subjectDir=${1#*=}
+    --subjectSelection=*)
+        subjectSelection=${1#*=}
         shift       
         ;;
     -m | --mcrRoot)
@@ -118,9 +119,9 @@ main() {
 
     parse_input "$@"
 
-    if [[ ! -d "$subjectDir" ]]
+    if [[ ! -e "$subjectSelection" ]]
     then
-        echo "Subject directory argument missing / not a directory."
+        echo "Subject selection argument missing / does not exist."
         exit 1
     fi
 
@@ -158,9 +159,9 @@ main() {
 
     # Add requested reconstruction steps if specified.
     if [ ! -z "$networkSteps" ]; then
-        $target "$subjectDir" "${NameValueParams[@]}" reconstructionSteps ${networkSteps// /,}
+        $target "$subjectSelection" "${NameValueParams[@]}" reconstructionSteps ${networkSteps// /,}
     else
-        $target "$subjectDir" "${NameValueParams[@]}" 
+        $target "$subjectSelection" "${NameValueParams[@]}" 
     fi
 
     # clean up and exit
