@@ -48,7 +48,7 @@ while ~isempty(varargin)
             assert(ismember(runType, {'none', 'continue', 'overwrite'}));
             runType = varValue;
             
-        case 'reconstructionsteps'
+        case 'reconstructionSteps'
             
             % Command line uses ',' to split reconstruction steps.
             if ischar(varValue)
