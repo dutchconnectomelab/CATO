@@ -22,3 +22,8 @@ Details about how to use CATO, and an examples of using the structural and funct
 
 ## Documentation
 Full documentation is provided on the CATO website [http://www.dutchconnectomelab.nl/CATO](http://www.dutchconnectomelab.nl/CATO).
+
+## Maintainers
+
+Koen Helwegen (current)
+Siemon de Lange (2019 - 2023)
