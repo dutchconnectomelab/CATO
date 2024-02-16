@@ -64,11 +64,17 @@ end
 
 %% Prepare index, acqp, bvals and bvecs for Eddy and Topup
 
+% Read acqFile if it exists and is compatible
+if exist(acqpFile, 'file')
+    acqp = dlmread(acqpFile);
+    assert(size(acqp, 2) == 4);
+% otherwise create a new acqFile using the revPhaseEncDim and acqpFactor
+else
+    acqp = zeros(2, 4);
+    acqp(:, 4) = acqpFactor;
+    acqp(1, revPhaseEncDim) = 1; acqp(2, revPhaseEncDim) = -1;
+end
 
-% Create acquisition parameters matrix
-acqp = zeros(2, 4);
-acqp(:, 4) = acqpFactor;
-acqp(1, revPhaseEncDim) = 1; acqp(2, revPhaseEncDim) = -1;
 
 % Case 1: One set (Minimal or Eddy preprocessing)
 if isempty(dwiFileReversed) && isempty(dwiB0OnlyReversed)
