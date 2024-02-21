@@ -63,6 +63,7 @@ if ~isempty(dwiFileReversed)
 end
 
 % When using synboFile
+% could be expanded to every topup run
 if ~isempty(synb0File)
     propsynb0File = load_nifti_hdr_fast(synb0File);
     % check if dimensons have an even number to enable topup 
