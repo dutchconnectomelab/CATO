@@ -153,10 +153,11 @@ if ~isempty(synb0File) && isempty(dwiFileReversed) && isempty(dwiB0OnlyReversed)
                 'synb0File was set. acqpFile should have at least one echotime of zero (4th column).');
         end
 
-        % if outputDir does not contain acqpFile and indexFile
-        % copy them to outputDir to keep track of the used files
+        % Store copy of acqpFile and indexFile in outputDir
         if ~strcmp(configParams.general.outputDir, fileparts(acqpFile))
             copyfile(acqpFile, fullfile(configParams.general.outputDir, 'acqp.txt'));
+        end
+        if ~strcmp(configParams.general.outputDir, fileparts(indexFile))
             copyfile(indexFile, fullfile(configParams.general.outputDir, 'index.txt'));
         end
 
