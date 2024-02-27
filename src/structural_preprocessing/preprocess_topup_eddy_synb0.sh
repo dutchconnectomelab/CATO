@@ -60,7 +60,7 @@ parse_input()
         	shift 
                     ;;
    		--dwiFile=*)
-        	dwiFiles=${1#*=}
+        	dwiFile=${1#*=}
         	shift 		
         ;;
    		--dwiFiles=*)
@@ -165,7 +165,7 @@ brainMaskFile=${dwiProcessedFile/.nii.gz/_mask.nii.gz} # DO NOT CHANGE: HARDCODE
 topup -v --imain="$synb0File" --config=b02b0.cnf \
 --datain="$acqpFile" --out="${dwiProcessedFile/.nii.gz/}" \
 --iout="$dwiB0UnwarpedScansFile" --subsamp=1
-rm "${dwiB0ScansFile/.nii.gz/}".{nii.gz,topup_log}
+#rm "${dwiB0ScansFile/.nii.gz/}".{nii.gz,topup_log}
 
 
 # -------------------------------------
@@ -175,6 +175,10 @@ rm "${dwiB0ScansFile/.nii.gz/}".{nii.gz,topup_log}
 fslmaths "$dwiB0UnwarpedScansFile" -Tmean "$dwiReferenceFile"
 bet "$dwiReferenceFile" "$dwiProcessedFile" -m -n # creates $brainMaskFile
 rm "$dwiReferenceFile" "$dwiB0UnwarpedScansFile"
+
+# error check
+echo $dwiFile
+echo $dwiProcessedFile
 
 # Run eddy current correction on only the dwi data
 $eddyVersion -v --imain="$dwiFile" \
