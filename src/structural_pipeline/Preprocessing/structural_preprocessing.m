@@ -31,6 +31,7 @@ indexFile = configParams.structural_preprocessing.indexFile;
 acqpFile = configParams.structural_preprocessing.acqpFile;
 rawBvalsFile = configParams.structural_preprocessing.rawBvalsFile;
 rawBvecsFile = configParams.structural_preprocessing.rawBvecsFile;
+synb0File = configParams.structural_preprocessing.synb0File;
 
 %% Load bvals and bvecs
 
@@ -61,17 +62,30 @@ if ~isempty(dwiFileReversed)
     assert(isequal(propdwiFile.dim(2:5), propdwiFileReversed.dim(2:5)));
 end
 
+% When using synboFile
+% could be expanded to every topup run
+if ~isempty(synb0File)
+    propsynb0File = load_nifti_hdr_fast(synb0File);
+    % check if dimensons have an even number to enable topup 
+    if any(mod(propsynb0File.dim(2:4), 2)) || any(mod(propdwiFile.dim(2:4), 2))
+        error('CATO:structural_preprocessing:Synb0Dimensions', ...
+            'synb0File and dwiFile should have even dimensions to run topup.');
+    end
+end
+
 
 %% Prepare index, acqp, bvals and bvecs for Eddy and Topup
+% - deafult behavior is to generate acqp and index files
+% - enable user defined acqp and index if synb0File is defined
 
-
-% Create acquisition parameters matrix
+% Set acqp based on revPhaseEncDim and acqpFactor (default)
 acqp = zeros(2, 4);
 acqp(:, 4) = acqpFactor;
 acqp(1, revPhaseEncDim) = 1; acqp(2, revPhaseEncDim) = -1;
 
+
 % Case 1: One set (Minimal or Eddy preprocessing)
-if isempty(dwiFileReversed) && isempty(dwiB0OnlyReversed)
+if isempty(dwiFileReversed) && isempty(dwiB0OnlyReversed) && isempty(synb0File)
     
     index = ones(1, nScans);
     
@@ -126,6 +140,42 @@ if isempty(dwiFileReversed) && ~isempty(dwiB0OnlyReversed)
 
 end
 
+% Case 4: SynB0-DISCO output is available to run TOPUP and eddy
+if ~isempty(synb0File) && isempty(dwiFileReversed) && isempty(dwiB0OnlyReversed)
+    % check if index and acqp files are defined
+    if exist(acqpFile, 'file') && exist(indexFile, 'file')
+        acqp = dlmread(acqpFile);
+        index = dlmread(indexFile);
+
+        % check if acqp has at least 1 zero in the 4th column
+        if ~any(acqp(:, 4) == 0)
+            error('CATO:structural_preprocessing:TopupUnclear', ...
+                'synb0File was set. acqpFile should have at least one echotime of zero (4th column).');
+        end
+
+        % Store copy of acqpFile and indexFile in outputDir
+        if ~strcmp(configParams.general.outputDir, fileparts(acqpFile))
+            copyfile(acqpFile, fullfile(configParams.general.outputDir, 'acqp.txt'));
+        end
+        if ~strcmp(configParams.general.outputDir, fileparts(indexFile))
+            copyfile(indexFile, fullfile(configParams.general.outputDir, 'index.txt'));
+        end
+
+    elseif ~exist(acqpFile, 'file') || ~exist(indexFile, 'file')
+        error('CATO:structural_preprocessing:TopupUnclear', ...
+            'acqpFile and indexFile should be defined if synb0File is defined.');
+    end
+
+
+
+% error if conflicting inputs (synb0File defined, but also dwiFileReversed or dwiB0OnlyReversed)
+elseif ~isempty(synb0File) && (~isempty(dwiFileReversed) || ~isempty(dwiB0OnlyReversed))
+    error('CATO:structural_preprocessing:TopupUnclear', ...
+       'Either synb0File or dwiFileReversed or dwiB0OnlyReversed, or neither variables should be defined.');
+end
+
+
+% error if conflicting inputs (dwiFileReversed and dwiB0OnlyReversed)
 if ~isempty(dwiFileReversed) && ~isempty(dwiB0OnlyReversed)
    error('CATO:structural_preprocessing:TopupUnclear', ...
        'Either dwiFileReversed or dwiB0OnlyReversed, or neither variables should be defined.');
@@ -169,6 +219,7 @@ inputArguments = sprintf('--%s="%s" \\\n\t', inputArguments{:});
 %     freesurferDir
 %     registrationMatrix
 %     segmentationFile
+%     synb0File
 %     b0Scans
 %     processedBvecsFile
 %     processedBvalsFile
