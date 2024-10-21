@@ -189,7 +189,7 @@ while true
                 
                 fiberIndex1 = [fiberIndex1; single(zeros(size(fiberIndex1)))];
                 fiberIndex2 = [fiberIndex2; single(zeros(size(fiberIndex1)))];
-                fiberMeasures = [fiberMeasures; single(zeros(size(fiberMeasures)))];
+                fiberMeasures = [fiberMeasures, single(zeros(size(fiberMeasures)))];
                 fiberLength = [fiberLength; single(zeros(size(fiberLength)))];
                 fiberNumber = [fiberNumber; single(zeros(size(fiberNumber)))];
                 fiberMaxAngle = [fiberMaxAngle; single(zeros(size(fiberMaxAngle)))];
