@@ -1,9 +1,12 @@
-function configParams = structural_pipeline(subjectDir, varargin)
+function configParams = structural_pipeline(subjectSelection, varargin)
 % STRUCTURAL_PIPELINE   Reconstruct structural connectivity.
 %
 %   structural_pipeline(SUBJECTDIR) reconstructs structural connectivity of
 %   a subjects T1 and DWI data in the SUBJECTDIR directory using default
 %   parameters.
+%
+%   structural_pipeline(SUBJECTLISTFILE) takes a file in which each line is
+%   a subject directory, and calls structural_pipeline for each directory.
 %
 %   structural_pipeline(SUBJECTDIR, 'Param1', VAL1, 'Param2', VAL2, ...)
 %   specifies additional parameter name-value pairs chosen from:
@@ -61,18 +64,61 @@ assert(contains([toolboxInstalled.Name], ...
 clear toolboxInstalled
 
 % PARSE INPUT
-[subjectDir, varargin{:}] = convertStringsToChars(subjectDir, varargin{:});
+[subjectSelection, varargin{:}] = convertStringsToChars(subjectSelection, varargin{:});
 
-assert(ischar(subjectDir), ...
+assert(ischar(subjectSelection), ...
     'CATO:structural_pipeline:subjectDirNotText', ...
     'subjectDir must be a row vector of characters or string scalar.');
-assert(isdir(subjectDir), ...
+assert(isdir(subjectSelection) | isfile(subjectSelection), ...
     'CATO:structural_pipeline:subjectDirNotDir', ...
-    'subjectDir (%s) is not a directory', subjectDir);
+    'subjectSelection (%s) is not a directory or file', subjectSelection);
 
-[configFile, runType, configParamsCl] = parseVarargin(varargin{:});
+%% Group mode
+
+if isfile(subjectSelection)
+    subjectListFile = subjectSelection;
+    fprintf('\n--------strarting group run----------\n')
+
+    % read file
+    fi = fopen(subjectListFile);
+
+    fprintf('Processing subjects in %s\n\n', subjectListFile);
+
+    % read line by line, keep track of processed/failed/unrecognized
+    subjectDir = fgetl(fi);
+    processedSubjects = 0;
+    failedSubjects = 0;
+    unrecognizedSubjects = 0;
+
+    while ischar(subjectDir)
+        if isdir(subjectDir)
+            try
+                configParams = structural_pipeline(subjectDir, varargin{:});
+                processedSubjects = processedSubjects + 1;
+            catch
+                failedSubjects = failedSubjects + 1;            
+            end
+        else
+            unrecognizedSubjects = unrecognizedSubjects + 1;
+            warning('CATO:structural_pipeline:subjectDirNotDir', ...
+                'subjectDir (%s) is not a directory', subjectDir);
+        end
+        subjectDir = fgetl(fi);
+    end
+
+    fprintf('\n---------group run finished----------\n')
+    fprintf('Processed %d subjects, %d failed, %d unrecognized\n\n', ...
+        processedSubjects, failedSubjects, unrecognizedSubjects);
+
+    fclose(fi);
+    return
+end
+
+subjectDir = subjectSelection;
 
 %% Setup
+
+[configFile, runType, configParamsCl] = parseVarargin(varargin{:});
 
 % Setup path (note this is done before log files or other stuff).
 oldPath = pwd;

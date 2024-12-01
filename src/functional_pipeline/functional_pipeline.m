@@ -1,9 +1,12 @@
-function configParams = functional_pipeline(subjectDir, varargin)
+function configParams = functional_pipeline(subjectSelection, varargin)
 % FUNCTIONAL_PIPELINE   Reconstruct structural connectivity.
 %
 %   functional_pipeline(SUBJECTDIR) reconstructs functional connectivity of
 %   a subjects T1 and rs-fMRI data in the SUBJECTDIR directory using default
 %   parameters.
+%
+%   functional_pipeline(SUBJECTLISTFILE) takes a file in which each line is
+%   a subject directory, and calls functional_pipeline for each directory.
 %
 %   functional_pipeline(SUBJECTDIR, 'Param1', VAL1, 'Param2', VAL2, ...)
 %   specifies additional parameter name-value pairs chosen from:
@@ -62,19 +65,62 @@ clear toolboxInstalled
 
 
 % PARSE INPUT
-[subjectDir, varargin{:}] = convertStringsToChars(subjectDir, varargin{:});
+[subjectSelection, varargin{:}] = convertStringsToChars(subjectSelection, varargin{:});
 
-assert(ischar(subjectDir), ...
+assert(ischar(subjectSelection), ...
     'CATO:functional_pipeline:subjectDirNotText', ...
     'subjectDir must be a row vector of characters or string scalar.');
-assert(isdir(subjectDir), ...
+assert(isdir(subjectSelection) | isfile(subjectSelection), ...
     'CATO:functional_pipeline:subjectDirNotDir', ...
-    'subjectDir (%s) is not a directory.', subjectDir);
+    'subjectDir (%s) is not a directory.', subjectSelection);
+
+%% Group mode
+
+if isfile(subjectSelection)
+    subjectListFile = subjectSelection;
+    fprintf('\n--------strarting group run----------\n')
+
+    % read file
+    fi = fopen(subjectListFile);
+
+    fprintf('Processing subjects in %s\n\n', subjectListFile);
+
+    % read line by line, keep track of processed/failed/unrecognized
+    subjectDir = fgetl(fi);
+    processedSubjects = 0;
+    failedSubjects = 0;
+    unrecognizedSubjects = 0;
+
+    while ischar(subjectDir)
+        if isdir(subjectDir)
+            try
+                configParams = functional_pipeline(subjectDir, varargin{:});
+                processedSubjects = processedSubjects + 1;
+            catch
+                failedSubjects = failedSubjects + 1;            
+            end
+        else
+            unrecognizedSubjects = unrecognizedSubjects + 1;
+            warning('CATO:functional_pipeline:subjectDirNotDir', ...
+                'subjectDir (%s) is not a directory', subjectDir);
+        end
+        subjectDir = fgetl(fi);
+    end
+
+    fprintf('\n---------group run finished----------\n')
+    fprintf('Processed %d subjects, %d failed, %d unrecognized\n\n', ...
+        processedSubjects, failedSubjects, unrecognizedSubjects);
+
+    fclose(fi);
+    return
+end
+
+subjectDir = subjectSelection;
+
+%% Setup
 
 [configFile, runType, configParamsCl] = parseVarargin(varargin{:});
 % parseVarargin does also error handling.
-
-%% Setup
 
 % Setup path (note this is done before log files or other stuff).
 oldPath = pwd;
