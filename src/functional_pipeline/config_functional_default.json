@@ -65,6 +65,7 @@
 			"filter": true,
 			"frequencies": [0.01, 0.1]
 		},
+		"truncateFrames": 5,
 		"scrubbing":{
 			"scrubbing": true,
 			"maxFD": 0.25, 

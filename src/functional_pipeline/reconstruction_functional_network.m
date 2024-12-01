@@ -41,6 +41,9 @@ for iMethod = 1:length(methods)
     minRepetitionTime = configParams.(methods{iMethod}).minRepetitionTime;
     bandpass_filter = configParams.(methods{iMethod}).bandpass_filter;
     
+    % Truncation parameters
+    truncateFrames = configParams.(methods{iMethod}).truncateFrames;
+    
     % Scrubbing parameters
     scrubbing = configParams.(methods{iMethod}).scrubbing;
     motionMetricsFile = configParams.compute_motion_metrics.motionMetricsFile;
@@ -235,7 +238,7 @@ for iMethod = 1:length(methods)
         % Frames with a number of indicators larger or equal to
         % minViolations are labeled as frames with potential motion
         % artifacts and are excluded from further analysis.
-        outlierFrames = sum(violations, 1) >= scrubbing.minViolations;
+        framesToRemove = sum(violations, 1) >= scrubbing.minViolations;
         
         % To accommodate temporal smoothing of data, frames consecutive to
         % frames with labeled motion artifacts are optionally excluded:
@@ -244,29 +247,43 @@ for iMethod = 1:length(methods)
         % succeeding frames to be excluded from further analysis.
         
         % This is a convolution, but for clarity let's use a for-loop
-        outlierFramesextended = zeros(size(outlierFrames));
-        for i = 1:length(outlierFrames)
-            if outlierFrames(i) > 0
-                outlierFramesextended(i-scrubbing.backwardNeighbors:i+scrubbing.forwardNeighbors) = 1;
+        framesToRemoveExtended = zeros(size(framesToRemove));
+        for i = 1:length(framesToRemove)
+            if framesToRemove(i) > 0
+                framesToRemoveExtended(i-scrubbing.backwardNeighbors:i+scrubbing.forwardNeighbors) = 1;
             end
         end
-        outlierFrames = outlierFramesextended;
+        framesToRemove = framesToRemoveExtended;
         
         fprintf('- scrubbing:           remove %i frames\n', ...
-            nnz(outlierFrames));
+            nnz(framesToRemove));
         
     else
-        outlierFrames = zeros(1, nTimePoints);
+        framesToRemove = zeros(1, nTimePoints);
     end
     
-    numberOfScrubbedVolumes = nnz(outlierFrames); %#ok
+    %% Truncation
+    % Truncation is advisable when using bandpass filtering as filtering
+    % can potentially introduce artefacts at the beginning and end of the
+    % timeseries.
+    
+    if truncateFrames > 0
+        removedPrior = nnz(framesToRemove);
+        framesToRemove = framesToRemove | [true(1, truncateFrames), false(1, nTimePoints-2*truncateFrames), true(1, truncateFrames)];
+        fprintf('- truncating:          remove additional %i frames\n', ...
+            nnz(framesToRemove) - removedPrior);
+    end
+    
+    %% Apply scrubbing & truncation
+    
+    numberOfScrubbedVolumes = nnz(framesToRemove); %#ok
     
     % calculate average motion metric over remaining frames
-    selectedFrames = find(~outlierFrames);
+    selectedFrames = find(~framesToRemove);
     motionMetrics = mean(motionMetrics(:, selectedFrames(2:end)), 2); %#ok
    
     % Compose final filtered, regressed and scrubbed time series
-    selectedTimeSeries = signalIntensities(:, ~outlierFrames);
+    selectedTimeSeries = signalIntensities(:, ~framesToRemove);
     clear signalIntensities
     
     %% Correlate   
